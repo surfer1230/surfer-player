@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>서퍼 플레이어 V3.5 (최적화 완료)</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --border: #2a2a3a;
+    --accent: #ff4d6d;
+    --accent2: #7c3aed;
+    --text: #e8e8f0;
+    --muted: #5a5a7a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 30px 20px;
+  }
+
+  h1 { font-family: 'Gowun Dodum', sans-serif; font-size: 2.5rem; letter-spacing: 0.05em; margin-bottom: 6px; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 20px; }
+
+  .top-panels { width: 100%; max-width: 860px; display: flex; gap: 15px; margin-bottom: 18px; flex-wrap: wrap; }
+  .settings-box { flex: 1; min-width: 300px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; }
+  .settings-box h3 {font-family: 'Gowun Dodum', sans-serif; font-size: 1.1rem; color: var(--accent2); margin-bottom: 10px; }
+  .macro-row { display: flex; gap: 8px; margin-bottom: 6px; align-items: center; font-size: 0.85rem;}
+  .macro-row input { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 6px; border-radius: 5px; outline: none; color:white; }
+
+  .room-selector { width: 100%; max-width: 860px; background: var(--surface); border: 1px solid var(--accent2); border-radius: 12px; padding: 15px 20px; margin-bottom: 18px; display: flex; align-items: center; gap: 15px; }
+  .room-selector label { font-family: 'Gowun Dodum', sans-serif; font-size: 1.2rem; color: var(--accent2); }
+  .room-selector select { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 10px; border-radius: 8px; cursor: pointer; }
+
+  .player-wrap { position: relative; width: 100%; max-width: 860px; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+  .player-wrap:fullscreen { max-width: 100%; width: 100vw; height: 100vh; border: none; border-radius: 0; }
+  #youtubePlayer { width: 100%; height: 100%; pointer-events: auto; }
+  #danmakuOverlay { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 10; }
+  #subtitleDisplay {
+    position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%);
+    text-align: center; width: 90%; pointer-events: none; z-index: 20;
+    color: white; font-size: 1.3rem; font-family: 'Noto Sans KR', sans-serif;
+    text-shadow: 2px 2px 2px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 8px; display: none;
+  }
+  #fsInputWrapper {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 60%;
+    background: rgba(0, 0, 0, 0.7); border: 2px solid var(--accent2); border-radius: 30px; padding: 12px 25px;
+    z-index: 9999; display: none; text-align: center;
+  }
+  #fsInput { width: 100%; background: transparent; border: none; color: white; font-size: 1.2rem; outline: none; text-align: center; }
+
+  .controls { width: 100%; max-width: 860px; background: var(--surface); border: 1px solid var(--border); border-radius: 0 0 12px 12px; padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .progress-wrap { position: relative; height: 4px; background: var(--border); border-radius: 2px; cursor: pointer; }
+  #progressBar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; pointer-events: none; }
+  .progress-marker { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); pointer-events: none; }
+
+  .ctrl-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  button.ctrl-btn { background: none; border: none; color: var(--text); cursor: pointer; padding: 6px; font-size: 0.85rem; border: 1px solid var(--border); border-radius: 6px; }
+  button.ctrl-btn:hover { background: var(--border); }
+  .toggle-btn { margin-left: auto; padding: 5px 12px; border-radius: 20px; font-size: 0.72rem; border: 1px solid var(--border); cursor: pointer; background: none; color: var(--muted); }
+  .toggle-btn.on { border-color: var(--accent2); color: var(--accent2); background: rgba(124,58,237,0.1); }
+
+  .comment-panel { width: 100%; max-width: 860px; margin-top: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .comment-panel h2 { font-family: 'Gowun Dodum', sans-serif; font-size: 1.2rem; color: var(--muted); margin-bottom: 14px; }
+  
+  .type-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); padding: 5px 12px; font-size: 0.75rem; cursor: pointer; transition: all 0.15s; }
+  .type-btn.selected, .type-btn:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(124,58,237,0.08); }
+  .type-picks { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+
+  .comment-input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  #commentText { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 9px 14px; outline: none; }
+  .color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+  .color-dot.selected { border-color: #fff; }
+  .send-btn { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 8px; color: #fff; padding: 9px 20px; font-family: 'Gowun Dodum', sans-serif; cursor: pointer; }
+
+  .comment-list { margin-top: 16px; max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+  .comment-item { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; background: var(--bg); cursor: pointer; }
+  .comment-del { margin-left: auto; color: var(--muted); background: none; border: none; cursor: pointer; }
+
+  .danmaku-item { position: absolute; left: 100%; white-space: nowrap; font-weight: 700; font-family: 'Gowun Dodum', sans-serif; text-shadow: 2px 2px 4px rgba(0,0,0,1); pointer-events: none; will-change: transform; z-index: 100; }
+  .danmaku-top { top: 10px; left: 50%; transform: translateX(-50%); animation: fadeInOut 4s ease forwards; }
+  .danmaku-bottom { bottom: 10px; left: 50%; transform: translateX(-50%); animation: fadeInOut 4s ease forwards; }
+  
+  @keyframes flyLeft { from { transform: translateX(0); } to { transform: translateX(calc(-100vw - 100%)); } }
+  @keyframes fadeInOut { 0% { opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { opacity: 0; } }
+</style>
+</head>
+<body>
+
+<h1>서퍼 플레이어 🏄‍♀️</h1>
+<p class="subtitle">V3.5 어벤져스 에디션 (최적화 완료)</p>
+
+<div class="top-panels">
+  <div class="settings-box">
+    <h3>🎨 테마 꾸미기</h3>
+    배경: <input type="color" id="themeBg" value="#0a0a0f">
+    포인트: <input type="color" id="themeAccent" value="#ff4d6d">
+  </div>
+  <div class="settings-box">
+    <h3>⚡ 원터치 주접</h3>
+    <div class="macro-row"><span>[1]</span><input type="text" id="macro1" value="꺄아아악!!! ㅠㅠ"></div>
+    <div class="macro-row"><span>[2]</span><input type="text" id="macro2" value="연출 미쳤다..."></div>
+  </div>
+</div>
+
+<div class="room-selector">
+  <label for="videoSelect">📺 방 선택:</label>
+  <select id="videoSelect">
+    <option value="dQw4w9WgXcQ">유튜브 테스트용 영상</option>
+    <option value="lDUD3omAlHA">걸룰즈(Girlverse) 예고편</option>
+    <option value="dObc3WRi6TU">플루토 EP 1-1</option>
+  </select>
+</div>
+
+<div class="player-wrap" id="playerWrap">
+  <div id="youtubePlayer"></div>
+  <div id="danmakuOverlay"></div>
+  <div id="subtitleDisplay"></div>
+  <div id="fsInputWrapper"><input type="text" id="fsInput" placeholder="엔터치고 주접 발사!"></div>
+</div>
+
+<div class="controls">
+  <div class="progress-wrap" id="progressWrap"><div id="progressBar"></div></div>
+  <div class="ctrl-row">
+    <button class="ctrl-btn" id="playBtn">▶</button>
+    <span style="font-size:0.72rem;color:var(--muted);margin-left:5px;">소리</span>
+    <input type="range" id="volSlider" min="0" max="100" step="5" value="100" style="width:60px;">
+    <span id="timeDisplay">0:00 / 0:00</span>
+
+    <span style="font-size:0.72rem;color:var(--muted);margin-left:10px;">속도</span>
+    <input type="range" id="speedSlider" min="0.5" max="2" step="0.25" value="1" style="width:50px;">
+    
+    <span style="font-size:0.72rem;color:var(--muted);margin-left:10px;">글자</span>
+    <input type="range" id="fontSizeSlider" min="16" max="48" step="2" value="26" style="width:50px;">
+    
+    <button class="ctrl-btn" id="fullscreenBtn" style="margin-left:10px;">🔲 전체화면</button>
+    <button class="toggle-btn on" id="danmakuToggle">댓글 ON</button>
+  </div>
+</div>
+
+<div class="comment-panel">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <h2 style="margin-bottom:0;">댓글 관리</h2>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span id="saveStatus" style="font-size:0.72rem;color:var(--muted);"></span>
+      <button class="type-btn" id="exportBtn">📤 내보내기</button>
+      <label class="type-btn">📥 가져오기<input type="file" id="importInput" accept=".json" style="display:none"></label>
+    </div>
+  </div>
+
+  <div class="comment-input-row">
+    <input type="text" id="commentText" placeholder="유튜브 보며 주접 떨기...">
+    <div id="colorPicks" style="display:flex; gap:5px;"></div>
+    <button class="send-btn" id="sendBtn">발사 !</button>
+  </div>
+
+  <div class="type-picks" id="typePicks">
+    <button class="type-btn selected" data-type="flow">흐르는 댓글</button>
+    <button class="type-btn" data-type="top">상단 고정</button>
+    <button class="type-btn" data-type="bottom">하단 고정</button>
+  </div>
+
+  <div class="comment-list" id="commentList"></div>
+
+  <div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+    <label class="type-btn" style="cursor:pointer;">
+      📄 자막 파일 (SRT/VTT)
+      <input type="file" id="subFileInput" accept=".srt,.vtt" style="display:none;">
+    </label>
+    <span id="subStatus" style="font-size:0.78rem;color:var(--muted);">SRT / VTT 지원</span>
+  </div>
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+let player;
+let comments = [];
+let subtitles = [];
+let shown = new Set();
+let danmakuOn = true;
+let currentVideoKey = document.getElementById('videoSelect').value;
+let animationFrameId = null; // 🔄 루프 제어용 변수 (클로드 피드백 반영!)
+
+// 🚄 레인 관리용 변수 (클로드 피드백 반영!)
+const LANE_COUNT = 15;
+const lanes = Array(LANE_COUNT).fill(0);
+
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('youtubePlayer', {
+    videoId: currentVideoKey,
+    host: 'https://www.youtube.com', 
+    playerVars: { 'enablejsapi': 1, 'autoplay': 0, 'rel': 0, 'modestbranding': 1, 'origin': window.location.origin || '*' },
+    events: { 'onStateChange': onPlayerStateChange }
+  });
+}
+
+function onPlayerStateChange(event) {
+  if (event.data === YT.PlayerState.PLAYING) {
+    startDanmakuLoop();
+    document.getElementById('playBtn').textContent = '⏸';
+  } else {
+    // 💡 일시정지하면 루프를 멈춰서 컴퓨터를 쉬게 함
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    document.getElementById('playBtn').textContent = '▶';
+  }
+}
+
+document.getElementById('videoSelect').addEventListener('change', (e) => {
+  currentVideoKey = e.target.value;
+  player.loadVideoById(currentVideoKey);
+  comments = []; shown.clear(); 
+  loadComments(); renderList(); updateMarkers();
+});
+
+// 💡 핵심 루프 (최적화 버전)
+function startDanmakuLoop() {
+  // 기존 루프가 있다면 취소 (중복 실행 방지)
+  if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+  function loop() {
+    if (!player || !player.getCurrentTime) return;
+    const state = player.getPlayerState();
+    if (state !== YT.PlayerState.PLAYING) return;
+    
+    const now = player.getCurrentTime();
+    const duration = player.getDuration();
+
+    // 1. 진행바
+    if(duration) {
+      document.getElementById('progressBar').style.width = (now / duration) * 100 + '%';
+      document.getElementById('timeDisplay').textContent = `${fmtTime(now)} / ${fmtTime(duration)}`;
+    }
+
+    // 2. 탄막 소환
+    comments.forEach(c => {
+      if (danmakuOn && !shown.has(c.id) && c.time <= now && c.time > now - 0.5) {
+        spawnDanmaku(c);
+        shown.add(c.id);
+      }
+    });
+
+    // 3. 자막 (보안 적용됨)
+    const subDiv = document.getElementById('subtitleDisplay');
+    const activeSub = subtitles.find(s => now >= s.start && now <= s.end);
+    if (activeSub) {
+      subDiv.style.display = 'block';
+      subDiv.innerHTML = activeSub.text; 
+    } else {
+      subDiv.style.display = 'none';
+    }
+
+    animationFrameId = requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+// 🚄 레인 찾기 함수 (글자 겹침 방지)
+function findLane(now) {
+  let best = 0;
+  for (let i = 0; i < LANE_COUNT; i++) {
+    if (lanes[i] < lanes[best]) best = i;
+  }
+  return best;
+}
+
+function spawnDanmaku(c) {
+  const el = document.createElement('div');
+  el.className = 'danmaku-item'; 
+  el.textContent = c.text; 
+  el.style.color = c.color;
+  const fontSize = parseInt(document.getElementById('fontSizeSlider').value);
+  el.style.fontSize = fontSize + 'px';
+  const overlay = document.getElementById('danmakuOverlay');
+  
+  if (c.type === 'top') {
+    el.className += ' danmaku-top';
+  } else if (c.type === 'bottom') {
+    el.className += ' danmaku-bottom';
+  } else {
+    // 💡 레인 배정 로직 (겹침 방지!)
+    const lane = findLane(player.getCurrentTime());
+    const laneH = (overlay.offsetHeight || 400) / LANE_COUNT;
+    // 겹치지 않는 높이 계산
+    el.style.top = (lane * laneH) + 'px'; 
+    
+    // 속도 설정
+    const speedVal = parseFloat(document.getElementById('speedSlider').value); // 영상 속도
+    const duration = 8 / speedVal; // 영상이 빠르면 댓글도 빨리
+    el.style.animation = `flyLeft ${duration}s linear forwards`;
+    
+    // 이 레인은 언제 비워지나? (현재시간 + 애니메이션 시간 * 0.7 정도)
+    lanes[lane] = player.getCurrentTime() + (duration * 0.4); 
+  }
+  
+  overlay.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+
+// 🛡️ 보안 함수: 자막 파싱 시 악성 코드 제거
+function parseSRT(data) {
+  data = data.replace(/\r\n|\r/g, '\n'); 
+  const regex = /(\d+:\d{2}:\d{2}[,.]\d{3}) --> (\d+:\d{2}:\d{2}[,.]\d{3})/g;
+  const items = [];
+  let array = data.split('\n\n');
+  
+  array.forEach(block => {
+    const match = regex.exec(block);
+    if (match) {
+      const start = timeToSec(match[1]);
+      const end = timeToSec(match[2]);
+      const parts = block.split(match[0]);
+      if(parts[1]) {
+        // 🛡️ 여기서 escHtml 사용! 단, 줄바꿈(\n)은 <br>로 허용
+        let cleanText = escHtml(parts[1].trim());
+        cleanText = cleanText.replace(/\n/g, '<br>');
+        items.push({ start, end, text: cleanText });
+      }
+    }
+    regex.lastIndex = 0;
+  });
+  return items;
+}
+
+// --- 공통 유틸 ---
+function escHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function timeToSec(str) { const p = str.replace(',', '.').split(':'); return (parseFloat(p[0]) * 3600) + (parseFloat(p[1]) * 60) + parseFloat(p[2]); }
+function fmtTime(s) { if (isNaN(s)) return '0:00'; const m = Math.floor(s / 60); const sec = Math.floor(s % 60).toString().padStart(2, '0'); return `${m}:${sec}`; }
+
+// 🧹 시크바 클릭 시 shown 초기화 (이미 본 댓글 다시 보이게)
+document.getElementById('progressWrap').addEventListener('click', e => {
+  if(!player || !player.getDuration) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pos = (e.clientX - rect.left) / rect.width;
+  player.seekTo(player.getDuration() * pos, true);
+  shown.clear(); // 💡 초기화!
+  document.getElementById('danmakuOverlay').innerHTML = '';
+});
+
+// 기타 이벤트 리스너들 (기존 유지)
+document.getElementById('volSlider').addEventListener('input', e => player.setVolume(e.target.value));
+document.getElementById('speedSlider').addEventListener('input', e => player.setPlaybackRate(parseFloat(e.target.value)));
+document.getElementById('playBtn').addEventListener('click', () => {
+  if (player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo();
+});
+document.getElementById('exportBtn').addEventListener('click', () => {
+  if (!comments.length) return alert('댓글이 없습니다!');
+  const blob = new Blob([JSON.stringify(comments, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = currentVideoKey + '_comments.json'; a.click();
+});
+document.getElementById('importInput').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { try { comments = JSON.parse(ev.target.result); shown.clear(); renderList(); updateMarkers(); saveComments(); alert('댓글을 가져왔습니다!'); } catch(e) { alert('파일 오류!'); } };
+  reader.readAsText(file); e.target.value = '';
+});
+document.getElementById('subFileInput').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { subtitles = parseSRT(ev.target.result); document.getElementById('subStatus').textContent = `✅ ${file.name}`; };
+  reader.readAsText(file, 'UTF-8'); e.target.value = '';
+});
+
+// 댓글 처리 로직
+function processNewComment(text, type='flow') {
+  const comment = { id: Date.now(), time: player.getCurrentTime(), text, color: selectedColor, type: selectedType };
+  comments.push(comment); comments.sort((a, b) => a.time - b.time);
+  saveComments(); renderList(); updateMarkers(); spawnDanmaku(comment);
+}
+document.addEventListener('keydown', (e) => {
+  const isFS = !!document.fullscreenElement;
+  if (isFS && e.key === 'Enter') {
+    const fsWrapper = document.getElementById('fsInputWrapper'); const fsInput = document.getElementById('fsInput');
+    if (fsWrapper.style.display === 'none' || !fsWrapper.style.display) { fsWrapper.style.display = 'block'; fsInput.focus(); } 
+    else { if (fsInput.value.trim()) processNewComment(fsInput.value.trim()); fsInput.value = ''; fsWrapper.style.display = 'none'; }
+    return;
+  }
+  if (e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space') { if (player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo(); e.preventDefault(); }
+  if (['1','2','3'].includes(e.key)) { const text = document.getElementById('macro' + e.key).value.trim(); if (text) processNewComment(text); }
+});
+
+const COLORS = ['#ffffff', '#ff4d6d', '#ffd166', '#06d6a0', '#a78bfa'];
+let selectedColor = COLORS[0]; let selectedType = 'flow';
+const colorPicks = document.getElementById('colorPicks');
+COLORS.forEach(c => {
+  const dot = document.createElement('div'); dot.className = 'color-dot' + (c === selectedColor ? ' selected' : ''); dot.style.background = c;
+  dot.onclick = () => { selectedColor = c; document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('selected')); dot.classList.add('selected'); };
+  colorPicks.appendChild(dot);
+});
+document.querySelectorAll('.type-picks .type-btn').forEach(btn => {
+  btn.addEventListener('click', () => { selectedType = btn.dataset.type; document.querySelectorAll('.type-picks .type-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); });
+});
+
+document.getElementById('sendBtn').onclick = () => { const input = document.getElementById('commentText'); if (input.value.trim()) { processNewComment(input.value.trim()); input.value = ''; } };
+document.getElementById('fullscreenBtn').onclick = () => { const wrap = document.getElementById('playerWrap'); if (!document.fullscreenElement) wrap.requestFullscreen(); else document.exitFullscreen(); };
+document.getElementById('danmakuToggle').onclick = function() { danmakuOn = !danmakuOn; this.classList.toggle('on'); this.textContent = danmakuOn ? '댓글 ON' : '댓글 OFF'; if(!danmakuOn) document.getElementById('danmakuOverlay').innerHTML = ''; };
+
+function updateMarkers() {
+  document.querySelectorAll('.progress-marker').forEach(el => el.remove());
+  if (!player || !player.getDuration()) return;
+  const dur = player.getDuration();
+  comments.forEach(c => {
+    const marker = document.createElement('div'); marker.className = 'progress-marker';
+    marker.style.left = (c.time / dur * 100) + '%'; marker.style.background = c.color;
+    document.getElementById('progressWrap').appendChild(marker);
+  });
+}
+function saveComments() { localStorage.setItem(currentVideoKey, JSON.stringify(comments)); document.getElementById('saveStatus').textContent = '💾'; setTimeout(()=>document.getElementById('saveStatus').textContent='',2000); }
+function loadComments() { const raw = localStorage.getItem(currentVideoKey); comments = raw ? JSON.parse(raw) : []; }
+function renderList() {
+  const list = document.getElementById('commentList'); list.innerHTML = '';
+  comments.forEach(c => {
+    const item = document.createElement('div'); item.className = 'comment-item';
+    item.innerHTML = `<span style="color:var(--accent)">${fmtTime(c.time)}</span> <span style="flex:1">${escHtml(c.text)}</span> <button class="comment-del">✕</button>`;
+    item.onclick = (e) => { if(e.target.className !== 'comment-del') { player.seekTo(c.time, true); shown.clear(); } };
+    item.querySelector('.comment-del').onclick = () => { comments = comments.filter(x => x.id !== c.id); shown.delete(c.id); renderList(); updateMarkers(); saveComments(); };
+    list.appendChild(item);
+  });
+}
+</script>
+</body>
+</html>
