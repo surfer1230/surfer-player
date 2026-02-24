@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>서퍼 플레이어 V4.5 (테스트)</title>
+<title>서퍼 플레이어 V4.9 (포커스 트랩 해결)</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
 
@@ -32,17 +32,28 @@
   .settings-box { flex: 1; min-width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; }
   .settings-box h3 {font-family: 'Gowun Dodum', sans-serif; font-size: 1rem; color: var(--accent2); margin-bottom: 10px; }
   
-  /* 주접 버튼 스타일 */
   .macro-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
-  .macro-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px 0; border-radius: 6px; cursor: pointer; font-family: 'Gowun Dodum'; transition: 0.2s; }
-  .macro-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(255, 77, 109, 0.1); }
+  
+  .hotkey {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin-right: 6px;
+    font-size: 0.85em;
+    font-weight: bold;
+    color: var(--accent);
+    box-shadow: 0 2px 0 var(--border);
+  }
 
   .room-selector { width: 100%; max-width: 860px; background: var(--surface); border: 1px solid var(--accent2); border-radius: 12px; padding: 12px 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
   .room-selector label { font-family: 'Gowun Dodum', sans-serif; font-size: 1.1rem; color: var(--accent2); white-space: nowrap; }
   .room-selector select { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; cursor: pointer; max-width: 100%; }
 
-  .player-wrap { position: relative; width: 100%; max-width: 860px; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+  /* ✨ [수정] player-wrap에 포커스 잡혔을 때 테두리 없애기 */
+  .player-wrap { position: relative; width: 100%; max-width: 860px; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); outline: none; }
   .player-wrap:fullscreen { max-width: 100%; width: 100vw; height: 100vh; border: none; border-radius: 0; }
+  
   #youtubePlayer { width: 100%; height: 100%; pointer-events: auto; }
   #danmakuOverlay { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 10; }
   #subtitleDisplay {
@@ -95,7 +106,6 @@
   @keyframes flyLeft { from { transform: translateX(0); } to { transform: translateX(calc(-100vw - 100%)); } }
   @keyframes fadeInOut { 0% { opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { opacity: 0; } }
 
-  /* 모바일 대응 */
   @media (max-width: 600px) {
     h1 { font-size: 1.5rem; }
     .top-panels { flex-direction: column; }
@@ -103,25 +113,38 @@
     #subtitleDisplay { font-size: 1rem; width: 95%; }
   }
 
-  /* 🎹 여기에 아까 내가 준 코드를 붙여넣는 거야! */
-  .hotkey {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 2px 6px;
-    margin-right: 6px;
-    font-size: 0.85em;
-    font-weight: bold;
-    color: var(--accent);
-    box-shadow: 0 2px 0 var(--border);
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    display: none; align-items: center; justify-content: center; z-index: 10000;
+    backdrop-filter: blur(5px);
   }
+  .modal-content {
+    background: var(--surface); border: 1px solid var(--accent2);
+    width: 90%; max-width: 500px; padding: 25px; border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative;
+  }
+  .modal-content h2 { font-family: 'Gowun Dodum'; color: var(--accent); margin-bottom: 15px; }
+  .modal-content ul { list-style: none; margin-bottom: 20px; }
+  .modal-content li { margin-bottom: 10px; font-size: 0.9rem; line-height: 1.5; color: var(--text); }
+  .modal-content b { color: var(--accent2); }
   
+  .help-icon { 
+    cursor: pointer; font-size: 1.2rem; color: var(--muted); vertical-align: middle; margin-left: 8px; 
+    transition: 0.2s;
+  }
+  .help-icon:hover { color: var(--accent); transform: scale(1.1); }
+
+  .close-modal-btn {
+    width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; color: white; padding: 12px; border-radius: 10px;
+    font-family: 'Gowun Dodum'; cursor: pointer; font-weight: bold;
+  }
 </style>
 </head>
 <body>
 
-<h1>서퍼 플레이어 🏄‍♀️</h1>
-<p class="subtitle">같이 덕질합시다</p>
+<h1>서퍼 플레이어 <span class="help-icon" id="openHelp">ⓘ</span></h1>
+<p class="subtitle">태국 gl 같이 즐기자</p>
 
 <div class="top-panels">
   <div class="settings-box">
@@ -131,15 +154,27 @@
       <label>포인트 <input type="color" id="themeAccent" value="#ff4d6d"></label>
     </div>
   </div>
-  <div class="settings-box">
-    <h3>⚡ 댓글 단축키</h3>
-  <div class="macro-grid">
-      <button class="macro-btn" data-msg="ㅋㅋㅋㅋㅋㅋㅋ"><span class="hotkey">1</span>ㅋㅋㅋ</button>
-      <button class="macro-btn" data-msg="ㅠㅠㅠㅠㅠㅠㅠ"><span class="hotkey">2</span>ㅠㅠㅠ</button>
-      <button class="macro-btn" data-msg="미쳤다..."><span class="hotkey">3</span>미쳤다</button>
-      <button class="macro-btn" data-msg="?"><span class="hotkey">4</span>?</button>
+<div class="settings-box">
+  <h3>⚡ 댓글 단축키 (커스텀)</h3>
+  <div class="macro-grid" style="grid-template-columns: 1fr; gap: 8px;">
+    <div style="display:flex; gap:5px; align-items:center;">
+      <span class="hotkey">1</span>
+      <input type="text" id="m1" value="ㅋㅋㅋㅋㅋㅋㅋ" style="flex:1; background:var(--bg); border:1px solid var(--border); color:white; padding:6px; border-radius:5px;">
+    </div>
+    <div style="display:flex; gap:5px; align-items:center;">
+      <span class="hotkey">2</span>
+      <input type="text" id="m2" value="ㅠㅠㅠㅠㅠㅠㅠ" style="flex:1; background:var(--bg); border:1px solid var(--border); color:white; padding:6px; border-radius:5px;">
+    </div>
+    <div style="display:flex; gap:5px; align-items:center;">
+      <span class="hotkey">3</span>
+      <input type="text" id="m3" value="연출 미쳤다..." style="flex:1; background:var(--bg); border:1px solid var(--border); color:white; padding:6px; border-radius:5px;">
+    </div>
+    <div style="display:flex; gap:5px; align-items:center;">
+      <span class="hotkey">4</span>
+      <input type="text" id="m4" value="?" style="flex:1; background:var(--bg); border:1px solid var(--border); color:white; padding:6px; border-radius:5px;">
     </div>
   </div>
+</div>
 </div>
 
 <div class="room-selector">
@@ -151,7 +186,7 @@
   </select>
 </div>
 
-<div class="player-wrap" id="playerWrap">
+<div class="player-wrap" id="playerWrap" tabindex="0">
   <div id="youtubePlayer"></div>
   <div id="danmakuOverlay"></div>
   <div id="subtitleDisplay"></div>
@@ -169,7 +204,7 @@
     <span style="font-size:0.72rem;color:var(--muted);margin-left:auto;">글자</span>
     <input type="range" id="fontSizeSlider" min="16" max="48" step="2" value="24" style="width:50px;">
     
-    <button class="ctrl-btn" id="fullscreenBtn">🔲</button>
+    <button class="ctrl-btn" id="fullscreenBtn" style="display:flex; align-items:center; gap:5px;">⛶ 전체화면</button>
     <button class="toggle-btn on" id="danmakuToggle">댓글 ON</button>
   </div>
 </div>
@@ -222,20 +257,17 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // --- 🕵️‍♀️ 1. 사용자 ID 생성 (내 글만 지우기 위해) ---
   let myId = localStorage.getItem('surfer_uid');
   if (!myId) {
     myId = 'user_' + Date.now() + Math.floor(Math.random() * 1000);
     localStorage.setItem('surfer_uid', myId);
   }
 
-  // 유튜브 API 강제 로드
   const tag = document.createElement('script');
   tag.src = "https://www.youtube.com/iframe_api";
   const firstScriptTag = document.getElementsByTagName('script')[0];
   firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-  // 전역 변수
   let player;
   let comments = []; 
   let subtitles = [];
@@ -246,7 +278,6 @@
   const LANE_COUNT = 15;
   const lanes = Array(LANE_COUNT).fill(0);
 
-  // API 준비
   window.onYouTubeIframeAPIReady = function() {
     player = new YT.Player('youtubePlayer', {
       videoId: currentVideoKey,
@@ -311,7 +342,7 @@
     if (!player) return;
     const newComment = {
       id: Date.now(),
-      userId: myId, // ✨ 작성자 ID 저장
+      userId: myId, 
       time: player.getCurrentTime(),
       text: text,
       color: selectedColor,
@@ -336,7 +367,6 @@
       const item = document.createElement('div');
       item.className = 'comment-item';
       
-      // ✨ 내 글인 경우에만 삭제 버튼 보이기
       const delBtn = c.userId === myId 
         ? `<button class="comment-del" onclick="deleteComment('${c.key}')">✕</button>` 
         : '';
@@ -388,7 +418,6 @@
           shown.add(c.id);
         }
       });
-      // 자막
       const subDiv = document.getElementById('subtitleDisplay');
       const activeSub = subtitles.find(s => now >= s.start && now <= s.end);
       if (activeSub) {
@@ -416,7 +445,6 @@
     el.textContent = c.text; 
     el.style.color = c.color;
     
-    // ✨ 2. 모바일이면 폰트 크기 60%로 줄이기
     const isMobile = window.innerWidth < 600;
     const baseSize = parseInt(document.getElementById('fontSizeSlider').value);
     const finalSize = isMobile ? baseSize * 0.6 : baseSize;
@@ -440,7 +468,7 @@
     el.addEventListener('animationend', () => el.remove());
   }
 
-  function parseSRT(data) { /* (기존과 동일) */
+  function parseSRT(data) { 
     data = data.replace(/\r\n|\r/g, '\n'); 
     const regex = /(\d+:\d{2}:\d{2}[,.]\d{3}) --> (\d+:\d{2}:\d{2}[,.]\d{3})/g;
     const items = [];
@@ -494,46 +522,67 @@
     reader.readAsText(file, 'UTF-8'); e.target.value = '';
   });
 
+  // ⌨️ 키보드 단축키 최종 수정 (V4.9)
   document.addEventListener('keydown', (e) => {
-    
-    // 1. 만약 지금 채팅창에 글을 쓰는 중이라면? -> 단축키 작동 금지! 🛑
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-    // 2. 전체화면일 때 엔터키 처리
     const isFS = !!document.fullscreenElement;
+    const fsWrapper = document.getElementById('fsInputWrapper');
+    const fsInput = document.getElementById('fsInput');
+
+    // 1. 전체화면 주접
     if (isFS && e.key === 'Enter') {
-      const fsWrapper = document.getElementById('fsInputWrapper'); 
-      const fsInput = document.getElementById('fsInput');
-      if (fsWrapper.style.display === 'none' || !fsWrapper.style.display) { 
-        fsWrapper.style.display = 'block'; 
-        fsInput.focus(); 
-      } else { 
-        if (fsInput.value.trim()) processNewComment(fsInput.value.trim()); 
-        fsInput.value = ''; 
-        fsWrapper.style.display = 'none'; 
+      e.preventDefault(); 
+      if (getComputedStyle(fsWrapper).display === 'none') {
+        fsWrapper.style.display = 'block';
+        fsInput.focus();
+      } 
+      else {
+        if (fsInput.value.trim()) processNewComment(fsInput.value.trim());
+        fsInput.value = '';
+        fsWrapper.style.display = 'none';
+        
+        // 🔥 여기가 핵심! 유튜브(iframe)가 아니라 '껍데기(playerWrap)'에 포커스를 줌
+        document.getElementById('playerWrap').focus(); 
       }
       return;
     }
 
-    // 3. 스페이스바 (재생/일시정지)
-    if (e.code === 'Space') { 
-      if(player) {
-         if (player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo(); 
-         e.preventDefault(); // 스크롤 내려감 방지
+    // 2. 채팅 치는 중이면 무시
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    // 3. F키
+    if (e.key === 'f' || e.key === 'F' || e.key === 'ㄹ') { 
+      const wrap = document.getElementById('playerWrap');
+      if (!document.fullscreenElement) { 
+        wrap.requestFullscreen(); 
+        wrap.focus(); // 🔥 전체화면 갈 때도 껍데기에 포커스!
+      } else { 
+        document.exitFullscreen(); 
       }
     }
 
-    // 4. 숫자키 1, 2, 3, 4 주접 발사! 🔥
-    const macroKeys = { '1': 0, '2': 1, '3': 2, '4': 3 };
+    // 4. 스페이스바
+    if (e.code === 'Space') { 
+      if(player && player.getPlayerState) {
+         if (player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo(); 
+         e.preventDefault(); 
+      }
+    }
+
+    // 5. 숫자 주접
+    const macroKeys = { '1': 'm1', '2': 'm2', '3': 'm3', '4': 'm4' };
     if (macroKeys.hasOwnProperty(e.key)) {
-      const buttons = document.querySelectorAll('.macro-btn');
-      const targetBtn = buttons[macroKeys[e.key]];
-      if (targetBtn) {
-        targetBtn.click(); // 버튼을 클릭한 것처럼 속임!
-        
-        // (선택사항) 버튼 눌리는 효과 주기
-        targetBtn.style.background = 'var(--accent)';
-        setTimeout(() => targetBtn.style.background = '', 150);
+      const inputEl = document.getElementById(macroKeys[e.key]);
+      if (inputEl && inputEl.value.trim()) {
+        processNewComment(inputEl.value.trim());
+        const hotkeySpan = inputEl.previousElementSibling;
+        if(hotkeySpan) {
+            hotkeySpan.style.background = 'var(--accent)';
+            hotkeySpan.style.color = 'white';
+            setTimeout(() => {
+                hotkeySpan.style.background = 'rgba(255,255,255,0.1)';
+                hotkeySpan.style.color = 'var(--accent)';
+            }, 150);
+        }
       }
     }
   });
@@ -545,14 +594,6 @@
     }
   });
 
-  // ✨ 3. 주접 버튼 (매크로) 이벤트 연결
-  document.querySelectorAll('.macro-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      processNewComment(btn.dataset.msg);
-    });
-  });
-
-  // ✨ 4. 테마 꾸미기 이벤트 연결 (배경, 포인트색)
   document.getElementById('themeBg').addEventListener('input', (e) => {
     document.documentElement.style.setProperty('--bg', e.target.value);
   });
@@ -586,14 +627,39 @@
   
   document.getElementById('fullscreenBtn').onclick = () => { 
     const wrap = document.getElementById('playerWrap'); 
-    if (!document.fullscreenElement) wrap.requestFullscreen(); else document.exitFullscreen(); 
+    if (!document.fullscreenElement) { wrap.requestFullscreen(); wrap.focus(); } else document.exitFullscreen(); 
   };
+  
   document.getElementById('danmakuToggle').onclick = function() { 
     danmakuOn = !danmakuOn; 
     this.classList.toggle('on'); 
     this.textContent = danmakuOn ? '댓글 ON' : '댓글 OFF'; 
     if(!danmakuOn) document.getElementById('danmakuOverlay').innerHTML = ''; 
   };
+  
+  const modal = document.getElementById('helpModal');
+  document.getElementById('openHelp').onclick = () => modal.style.display = 'flex';
+  document.getElementById('closeHelp').onclick = () => modal.style.display = 'none';
+  modal.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
+  
 </script>
+
+<div class="modal-overlay" id="helpModal">
+  <div class="modal-content">
+    <h2>🏄‍♀️ 서퍼 플레이어 가이드</h2>
+    <ul>
+      <li>📺 <b>저작권 안내:</b> 본 서비스는 유튜브 공식 API를 사용하며, <b>조회수와 광고 수익은 모두 원작자</b>에게 돌아갑니다.</li>
+      <li>🛡️ <b>보안 및 개인정보:</b> 어떠한 개인정보도 수집하지 않습니다. 삭제용 ID는 사용자 기기에만 임시 저장되는 익명 방식입니다.</li>
+      <li>💻 <b>환경 최적화:</b> 본 사이트는 모바일보다 <b>PC 웹 브라우저에 최적화</b>되어 있습니다.</li>
+      <li>⌨️ <b>단축키 가이드:</b><br>
+        - [F] : 전체화면 토글<br>
+        - [Space] : 재생/일시정지<br>
+        - [Enter] : 전체화면 채팅창 열기/전송<br>
+        - [1~4] : 설정된 주접 즉시 발사
+      </li>
+    </ul>
+    <button class="close-modal-btn" id="closeHelp">확인, 주접 떨러 가기!</button>
+  </div>
+</div>
 </body>
 </html>
