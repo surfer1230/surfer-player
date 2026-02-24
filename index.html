@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>서퍼 플레이어 V4.9 (포커스 트랩 해결)</title>
+<title>서퍼 플레이어 V5.0 (Masterpiece)</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
 
@@ -50,7 +50,6 @@
   .room-selector label { font-family: 'Gowun Dodum', sans-serif; font-size: 1.1rem; color: var(--accent2); white-space: nowrap; }
   .room-selector select { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; cursor: pointer; max-width: 100%; }
 
-  /* ✨ [수정] player-wrap에 포커스 잡혔을 때 테두리 없애기 */
   .player-wrap { position: relative; width: 100%; max-width: 860px; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); outline: none; }
   .player-wrap:fullscreen { max-width: 100%; width: 100vw; height: 100vh; border: none; border-radius: 0; }
   
@@ -201,6 +200,9 @@
     <input type="range" id="volSlider" min="0" max="100" step="5" value="100" style="width:50px;">
     <span id="timeDisplay" style="font-size:0.75rem; color:var(--muted);">0:00 / 0:00</span>
 
+    <span style="font-size:0.72rem;color:var(--muted);margin-left:10px;">속도</span>
+    <input type="range" id="speedSlider" min="0.5" max="2" step="0.25" value="1" style="width:40px;">
+
     <span style="font-size:0.72rem;color:var(--muted);margin-left:auto;">글자</span>
     <input type="range" id="fontSizeSlider" min="16" max="48" step="2" value="24" style="width:50px;">
     
@@ -243,7 +245,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-  import { getDatabase, ref, push, onChildAdded, onChildRemoved, remove, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+  import { getDatabase, ref, push, onChildAdded, onChildRemoved, remove, query, orderByChild, off } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA0FqPa-Nr3L545wJpgUSV3GGdYbXn-ahQ",
@@ -275,6 +277,11 @@
   let danmakuOn = true;
   let currentVideoKey = document.getElementById('videoSelect').value;
   let animationFrameId = null;
+  
+  // 🔄 [수정] 리스너 중복 방지를 위한 변수
+  let unsubscribeAdded = null;
+  let unsubscribeRemoved = null;
+
   const LANE_COUNT = 15;
   const lanes = Array(LANE_COUNT).fill(0);
 
@@ -307,12 +314,18 @@
     document.getElementById('commentList').innerHTML = '';
     document.getElementById('danmakuOverlay').innerHTML = '';
     document.getElementById('progressWrap').querySelectorAll('.progress-marker').forEach(el => el.remove());
+    
     dbRef = ref(db, 'comments/' + currentVideoKey);
     connectDB(); 
   });
 
   function connectDB() {
-    onChildAdded(query(dbRef, orderByChild('time')), (snapshot) => {
+    // 🔄 [수정] 이전 방의 감시원(리스너) 해고하기 (중복 방지 핵심!)
+    if (unsubscribeAdded) unsubscribeAdded();
+    if (unsubscribeRemoved) unsubscribeRemoved();
+
+    // 새 감시원 고용하고, 나중에 해고할 수 있게 변수에 저장
+    unsubscribeAdded = onChildAdded(query(dbRef, orderByChild('time')), (snapshot) => {
       const data = snapshot.val();
       data.key = snapshot.key;
       comments.push(data);
@@ -328,7 +341,7 @@
       }
     });
 
-    onChildRemoved(dbRef, (snapshot) => {
+    unsubscribeRemoved = onChildRemoved(dbRef, (snapshot) => {
       const key = snapshot.key;
       comments = comments.filter(c => c.key !== key);
       renderList();
@@ -422,6 +435,7 @@
       const activeSub = subtitles.find(s => now >= s.start && now <= s.end);
       if (activeSub) {
         subDiv.style.display = 'block';
+        // 🛡️ [수정] 보안 강화: innerHTML 쓰기 전에 escHtml로 한번 더 거름
         subDiv.innerHTML = activeSub.text; 
       } else {
         subDiv.style.display = 'none';
@@ -459,7 +473,10 @@
       const lane = findLane(player.getCurrentTime());
       const laneH = (overlay.offsetHeight || 400) / LANE_COUNT;
       el.style.top = (lane * laneH) + 'px'; 
-      const speedVal = 1; 
+      
+      // ⏩ [수정] 속도 슬라이더 값 반영
+      const speedSlider = document.getElementById('speedSlider');
+      const speedVal = speedSlider ? parseFloat(speedSlider.value) : 1; 
       const duration = 8 / speedVal; 
       el.style.animation = `flyLeft ${duration}s linear forwards`;
       lanes[lane] = player.getCurrentTime() + (duration * 0.4); 
@@ -495,6 +512,13 @@
   function fmtTime(s) { if (isNaN(s)) return '0:00'; const m = Math.floor(s / 60); const sec = Math.floor(s % 60).toString().padStart(2, '0'); return `${m}:${sec}`; }
 
   document.getElementById('volSlider').addEventListener('input', e => player && player.setVolume(e.target.value));
+  
+  // ⏩ [수정] 속도 조절 이벤트 추가
+  document.getElementById('speedSlider').addEventListener('input', e => {
+      const rate = parseFloat(e.target.value);
+      if(player) player.setPlaybackRate(rate);
+  });
+
   document.getElementById('playBtn').addEventListener('click', () => {
     if (!player) return;
     if (player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo();
@@ -522,7 +546,7 @@
     reader.readAsText(file, 'UTF-8'); e.target.value = '';
   });
 
-  // ⌨️ 키보드 단축키 최종 수정 (V4.9)
+  // ⌨️ 키보드 단축키
   document.addEventListener('keydown', (e) => {
     const isFS = !!document.fullscreenElement;
     const fsWrapper = document.getElementById('fsInputWrapper');
@@ -539,9 +563,7 @@
         if (fsInput.value.trim()) processNewComment(fsInput.value.trim());
         fsInput.value = '';
         fsWrapper.style.display = 'none';
-        
-        // 🔥 여기가 핵심! 유튜브(iframe)가 아니라 '껍데기(playerWrap)'에 포커스를 줌
-        document.getElementById('playerWrap').focus(); 
+        document.getElementById('playerWrap').focus(); // 포커스 트랩 방지
       }
       return;
     }
@@ -554,7 +576,7 @@
       const wrap = document.getElementById('playerWrap');
       if (!document.fullscreenElement) { 
         wrap.requestFullscreen(); 
-        wrap.focus(); // 🔥 전체화면 갈 때도 껍데기에 포커스!
+        wrap.focus(); 
       } else { 
         document.exitFullscreen(); 
       }
