@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>서퍼 플레이어 (Live) </title>
+<title>서퍼 플레이어 V4.0 (Live)</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
 
@@ -103,17 +103,17 @@
     포인트: <input type="color" id="themeAccent" value="#ff4d6d">
   </div>
   <div class="settings-box">
-    <h3>⚡ 원터치 댓글</h3>
-    <div class="macro-row"><span>[1]</span><input type="text" id="macro1" value="ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ"></div>
-    <div class="macro-row"><span>[2]</span><input type="text" id="macro2" value="ㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠ"></div>
+    <h3>⚡ 원터치 주접</h3>
+    <div class="macro-row"><span>[1]</span><input type="text" id="macro1" value="꺄아아악!!! ㅠㅠ"></div>
+    <div class="macro-row"><span>[2]</span><input type="text" id="macro2" value="연출 미쳤다..."></div>
   </div>
 </div>
 
 <div class="room-selector">
   <label for="videoSelect">📺 방 선택:</label>
   <select id="videoSelect">
-    <option value="blhUmqYG-gc">마이세이프존 1-1</option>
-    <option value="lDUD3omAlHA">걸룰즈 예고편</option>
+    <option value="dQw4w9WgXcQ">유튜브 테스트용 영상</option>
+    <option value="lDUD3omAlHA">걸룰즈(Girlverse) 예고편</option>
     <option value="dObc3WRi6TU">플루토 EP 1-1</option>
   </select>
 </div>
@@ -176,14 +176,12 @@
   </div>
 </div>
 
-<script src="https://www.youtube.com/iframe_api"></script>
-
 <script type="module">
-  // 1. 파이어베이스 라이브러리 불러오기
+  // 1. 파이어베이스 라이브러리
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getDatabase, ref, push, onChildAdded, onChildRemoved, remove, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-  // 2. 서이의 키값 (복사해준 내용)
+  // 2. 설정
   const firebaseConfig = {
     apiKey: "AIzaSyA0FqPa-Nr3L545wJpgUSV3GGdYbXn-ahQ",
     authDomain: "surfer-player.firebaseapp.com",
@@ -193,13 +191,18 @@
     appId: "1:660816674277:web:9663d0baed3ccc92e0430c"
   };
 
-  // 3. 앱 시작 & DB 연결
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
+  // 🔥 [핵심 수정] 유튜브 API를 여기서 강제로 로딩 (순서 꼬임 방지)
+  const tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  const firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
   // --- 전역 변수 설정 ---
   let player;
-  let comments = []; // 화면 표시용 로컬 배열
+  let comments = []; 
   let subtitles = [];
   let shown = new Set();
   let danmakuOn = true;
@@ -208,7 +211,7 @@
   const LANE_COUNT = 15;
   const lanes = Array(LANE_COUNT).fill(0);
 
-  // --- 유튜브 API 연결 (모듈이라 window에 붙여야 함) ---
+  // --- 유튜브 API 연결 ---
   window.onYouTubeIframeAPIReady = function() {
     player = new YT.Player('youtubePlayer', {
       videoId: currentVideoKey,
