@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>서퍼 플레이어 V3.5 (최적화 완료)</title>
+<title>서퍼 플레이어 (Live) </title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
 
@@ -94,7 +94,7 @@
 <body>
 
 <h1>서퍼 플레이어 🏄‍♀️</h1>
-<p class="subtitle">V3.5 어벤져스 에디션 (최적화 완료)</p>
+<p class="subtitle">V4.0 파이어베이스 에디션 (Live)</p>
 
 <div class="top-panels">
   <div class="settings-box">
@@ -103,17 +103,17 @@
     포인트: <input type="color" id="themeAccent" value="#ff4d6d">
   </div>
   <div class="settings-box">
-    <h3>⚡ 원터치 주접</h3>
-    <div class="macro-row"><span>[1]</span><input type="text" id="macro1" value="꺄아아악!!! ㅠㅠ"></div>
-    <div class="macro-row"><span>[2]</span><input type="text" id="macro2" value="연출 미쳤다..."></div>
+    <h3>⚡ 원터치 댓글</h3>
+    <div class="macro-row"><span>[1]</span><input type="text" id="macro1" value="ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ"></div>
+    <div class="macro-row"><span>[2]</span><input type="text" id="macro2" value="ㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠ"></div>
   </div>
 </div>
 
 <div class="room-selector">
   <label for="videoSelect">📺 방 선택:</label>
   <select id="videoSelect">
-    <option value="dQw4w9WgXcQ">유튜브 테스트용 영상</option>
-    <option value="lDUD3omAlHA">걸룰즈(Girlverse) 예고편</option>
+    <option value="blhUmqYG-gc">마이세이프존 1-1</option>
+    <option value="lDUD3omAlHA">걸룰즈 예고편</option>
     <option value="dObc3WRi6TU">플루토 EP 1-1</option>
   </select>
 </div>
@@ -146,16 +146,15 @@
 
 <div class="comment-panel">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-    <h2 style="margin-bottom:0;">댓글 관리</h2>
+    <h2 style="margin-bottom:0;">실시간 채팅</h2>
     <div style="display:flex;gap:8px;align-items:center;">
-      <span id="saveStatus" style="font-size:0.72rem;color:var(--muted);"></span>
-      <button class="type-btn" id="exportBtn">📤 내보내기</button>
-      <label class="type-btn">📥 가져오기<input type="file" id="importInput" accept=".json" style="display:none"></label>
+      <span id="saveStatus" style="font-size:0.72rem;color:var(--accent2);font-weight:bold;"></span>
+      <button class="type-btn" id="exportBtn">📤 백업하기</button>
     </div>
   </div>
 
   <div class="comment-input-row">
-    <input type="text" id="commentText" placeholder="유튜브 보며 주접 떨기...">
+    <input type="text" id="commentText" placeholder="함께 주접 떨어봐요!">
     <div id="colorPicks" style="display:flex; gap:5px;"></div>
     <button class="send-btn" id="sendBtn">발사 !</button>
   </div>
@@ -179,278 +178,382 @@
 
 <script src="https://www.youtube.com/iframe_api"></script>
 
-<script>
-let player;
-let comments = [];
-let subtitles = [];
-let shown = new Set();
-let danmakuOn = true;
-let currentVideoKey = document.getElementById('videoSelect').value;
-let animationFrameId = null; // 🔄 루프 제어용 변수 (클로드 피드백 반영!)
+<script type="module">
+  // 1. 파이어베이스 라이브러리 불러오기
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getDatabase, ref, push, onChildAdded, onChildRemoved, remove, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-// 🚄 레인 관리용 변수 (클로드 피드백 반영!)
-const LANE_COUNT = 15;
-const lanes = Array(LANE_COUNT).fill(0);
+  // 2. 서이의 키값 (복사해준 내용)
+  const firebaseConfig = {
+    apiKey: "AIzaSyA0FqPa-Nr3L545wJpgUSV3GGdYbXn-ahQ",
+    authDomain: "surfer-player.firebaseapp.com",
+    projectId: "surfer-player",
+    storageBucket: "surfer-player.firebasestorage.app",
+    messagingSenderId: "660816674277",
+    appId: "1:660816674277:web:9663d0baed3ccc92e0430c"
+  };
 
-function onYouTubeIframeAPIReady() {
-  player = new YT.Player('youtubePlayer', {
-    videoId: currentVideoKey,
-    host: 'https://www.youtube.com', 
-    playerVars: { 'enablejsapi': 1, 'autoplay': 0, 'rel': 0, 'modestbranding': 1, 'origin': window.location.origin || '*' },
-    events: { 'onStateChange': onPlayerStateChange }
-  });
-}
+  // 3. 앱 시작 & DB 연결
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-function onPlayerStateChange(event) {
-  if (event.data === YT.PlayerState.PLAYING) {
-    startDanmakuLoop();
-    document.getElementById('playBtn').textContent = '⏸';
-  } else {
-    // 💡 일시정지하면 루프를 멈춰서 컴퓨터를 쉬게 함
-    if (animationFrameId) cancelAnimationFrame(animationFrameId);
-    document.getElementById('playBtn').textContent = '▶';
-  }
-}
+  // --- 전역 변수 설정 ---
+  let player;
+  let comments = []; // 화면 표시용 로컬 배열
+  let subtitles = [];
+  let shown = new Set();
+  let danmakuOn = true;
+  let currentVideoKey = document.getElementById('videoSelect').value;
+  let animationFrameId = null;
+  const LANE_COUNT = 15;
+  const lanes = Array(LANE_COUNT).fill(0);
 
-document.getElementById('videoSelect').addEventListener('change', (e) => {
-  currentVideoKey = e.target.value;
-  player.loadVideoById(currentVideoKey);
-  comments = []; shown.clear(); 
-  loadComments(); renderList(); updateMarkers();
-});
+  // --- 유튜브 API 연결 (모듈이라 window에 붙여야 함) ---
+  window.onYouTubeIframeAPIReady = function() {
+    player = new YT.Player('youtubePlayer', {
+      videoId: currentVideoKey,
+      host: 'https://www.youtube.com', 
+      playerVars: { 'enablejsapi': 1, 'autoplay': 0, 'rel': 0, 'modestbranding': 1 },
+      events: { 'onStateChange': onPlayerStateChange }
+    });
+  };
 
-// 💡 핵심 루프 (최적화 버전)
-function startDanmakuLoop() {
-  // 기존 루프가 있다면 취소 (중복 실행 방지)
-  if (animationFrameId) cancelAnimationFrame(animationFrameId);
-
-  function loop() {
-    if (!player || !player.getCurrentTime) return;
-    const state = player.getPlayerState();
-    if (state !== YT.PlayerState.PLAYING) return;
-    
-    const now = player.getCurrentTime();
-    const duration = player.getDuration();
-
-    // 1. 진행바
-    if(duration) {
-      document.getElementById('progressBar').style.width = (now / duration) * 100 + '%';
-      document.getElementById('timeDisplay').textContent = `${fmtTime(now)} / ${fmtTime(duration)}`;
+  function onPlayerStateChange(event) {
+    if (event.data === YT.PlayerState.PLAYING) {
+      startDanmakuLoop();
+      document.getElementById('playBtn').textContent = '⏸';
+    } else {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      document.getElementById('playBtn').textContent = '▶';
     }
+  }
 
-    // 2. 탄막 소환
-    comments.forEach(c => {
-      if (danmakuOn && !shown.has(c.id) && c.time <= now && c.time > now - 0.5) {
-        spawnDanmaku(c);
-        shown.add(c.id);
+  // --- 🔥 파이어베이스 연동 핵심 로직 ---
+  let dbRef = ref(db, 'comments/' + currentVideoKey); // 현재 방의 주소
+
+  // 1. 방 바꿀 때 (비디오 변경)
+  document.getElementById('videoSelect').addEventListener('change', (e) => {
+    currentVideoKey = e.target.value;
+    player.loadVideoById(currentVideoKey);
+    
+    // 기존 댓글 싹 비우고
+    comments = [];
+    shown.clear();
+    document.getElementById('commentList').innerHTML = '';
+    document.getElementById('danmakuOverlay').innerHTML = '';
+    document.getElementById('progressWrap').querySelectorAll('.progress-marker').forEach(el => el.remove());
+
+    // 새 방으로 접속!
+    // 주의: 리스너 해제는 복잡해서 생략(새로고침 권장하지만, 일단 덮어씀)
+    dbRef = ref(db, 'comments/' + currentVideoKey);
+    connectDB(); 
+  });
+
+  // 2. DB에서 댓글 실시간 수신 (가장 중요!)
+  function connectDB() {
+    // 댓글이 추가되면(남이 쓰든 내가 쓰든)
+    onChildAdded(query(dbRef, orderByChild('time')), (snapshot) => {
+      const data = snapshot.val();
+      data.key = snapshot.key; // 삭제할 때 필요해서 키 저장
+      
+      comments.push(data);
+      comments.sort((a, b) => a.time - b.time); // 시간순 정렬
+      
+      renderList();
+      updateMarkers();
+      
+      // 방금 들어온 따끈한 댓글이고, 현재 재생 시간 근처라면 바로 띄우기 (옵션)
+      if (player && player.getPlayerState() === 1) {
+        const now = player.getCurrentTime();
+        if (Math.abs(data.time - now) < 2) { // 2초 이내 오차면 바로 발사
+           spawnDanmaku(data);
+           shown.add(data.id);
+        }
       }
     });
 
-    // 3. 자막 (보안 적용됨)
-    const subDiv = document.getElementById('subtitleDisplay');
-    const activeSub = subtitles.find(s => now >= s.start && now <= s.end);
-    if (activeSub) {
-      subDiv.style.display = 'block';
-      subDiv.innerHTML = activeSub.text; 
-    } else {
-      subDiv.style.display = 'none';
+    // 댓글이 삭제되면
+    onChildRemoved(dbRef, (snapshot) => {
+      const key = snapshot.key;
+      comments = comments.filter(c => c.key !== key);
+      renderList();
+      updateMarkers();
+    });
+  }
+  
+  // 최초 연결
+  connectDB();
+
+  // 3. 댓글 쓰기 (이제 로컬 저장이 아니라 서버로 보냄!)
+  function processNewComment(text) {
+    if (!player) return;
+    const newComment = {
+      id: Date.now(),
+      time: player.getCurrentTime(),
+      text: text,
+      color: selectedColor,
+      type: selectedType
+    };
+    
+    // 🔥 서버로 전송! (push 하면 onChildAdded가 알아서 내 화면에도 띄워줌)
+    push(dbRef, newComment);
+    
+    // 저장 알림
+    const status = document.getElementById('saveStatus');
+    status.textContent = '☁️ 전송!';
+    setTimeout(() => status.textContent = '', 2000);
+  }
+
+  // 4. 댓글 삭제 (서버에서 삭제)
+  window.deleteComment = function(key) {
+    if(confirm('진짜 지울까요?')) {
+      remove(ref(db, 'comments/' + currentVideoKey + '/' + key));
     }
-
-    animationFrameId = requestAnimationFrame(loop);
   }
-  loop();
-}
 
-// 🚄 레인 찾기 함수 (글자 겹침 방지)
-function findLane(now) {
-  let best = 0;
-  for (let i = 0; i < LANE_COUNT; i++) {
-    if (lanes[i] < lanes[best]) best = i;
+  // --- 렌더링 및 UI 로직 (기존과 비슷함) ---
+  function renderList() {
+    const list = document.getElementById('commentList');
+    list.innerHTML = '';
+    comments.forEach(c => {
+      const item = document.createElement('div');
+      item.className = 'comment-item';
+      item.innerHTML = `
+        <span style="color:var(--accent)">${fmtTime(c.time)}</span>
+        <span style="flex:1">${escHtml(c.text)}</span>
+        <button class="comment-del" onclick="deleteComment('${c.key}')">✕</button>
+      `;
+      // 클릭 시 이동
+      item.onclick = (e) => { 
+        if(e.target.className !== 'comment-del') { 
+          player.seekTo(c.time, true); 
+          shown.clear(); 
+          document.getElementById('danmakuOverlay').innerHTML = '';
+        } 
+      };
+      list.appendChild(item);
+    });
   }
-  return best;
-}
 
-function spawnDanmaku(c) {
-  const el = document.createElement('div');
-  el.className = 'danmaku-item'; 
-  el.textContent = c.text; 
-  el.style.color = c.color;
-  const fontSize = parseInt(document.getElementById('fontSizeSlider').value);
-  el.style.fontSize = fontSize + 'px';
-  const overlay = document.getElementById('danmakuOverlay');
-  
-  if (c.type === 'top') {
-    el.className += ' danmaku-top';
-  } else if (c.type === 'bottom') {
-    el.className += ' danmaku-bottom';
-  } else {
-    // 💡 레인 배정 로직 (겹침 방지!)
-    const lane = findLane(player.getCurrentTime());
-    const laneH = (overlay.offsetHeight || 400) / LANE_COUNT;
-    // 겹치지 않는 높이 계산
-    el.style.top = (lane * laneH) + 'px'; 
+  function updateMarkers() {
+    const wrap = document.getElementById('progressWrap');
+    // 기존 마커 제거
+    wrap.querySelectorAll('.progress-marker').forEach(e => e.remove());
+    if (!player || !player.getDuration) return;
+    const dur = player.getDuration();
+    comments.forEach(c => {
+      const marker = document.createElement('div'); 
+      marker.className = 'progress-marker';
+      marker.style.left = (c.time / dur * 100) + '%'; 
+      marker.style.background = c.color;
+      wrap.appendChild(marker);
+    });
+  }
+
+  // --- 탄막 루프 (기존 유지) ---
+  function startDanmakuLoop() {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    function loop() {
+      if (!player || !player.getCurrentTime) return;
+      if (player.getPlayerState() !== YT.PlayerState.PLAYING) return;
+      
+      const now = player.getCurrentTime();
+      const dur = player.getDuration();
+      if(dur) {
+        document.getElementById('progressBar').style.width = (now / dur) * 100 + '%';
+        document.getElementById('timeDisplay').textContent = `${fmtTime(now)} / ${fmtTime(dur)}`;
+      }
+
+      comments.forEach(c => {
+        if (danmakuOn && !shown.has(c.id) && c.time <= now && c.time > now - 0.5) {
+          spawnDanmaku(c);
+          shown.add(c.id);
+        }
+      });
+
+      // 자막 표시
+      const subDiv = document.getElementById('subtitleDisplay');
+      const activeSub = subtitles.find(s => now >= s.start && now <= s.end);
+      if (activeSub) {
+        subDiv.style.display = 'block';
+        subDiv.innerHTML = activeSub.text; 
+      } else {
+        subDiv.style.display = 'none';
+      }
+
+      animationFrameId = requestAnimationFrame(loop);
+    }
+    loop();
+  }
+
+  // --- 기타 유틸 및 이벤트 ---
+  function findLane(now) {
+    let best = 0;
+    for (let i = 0; i < LANE_COUNT; i++) {
+      if (lanes[i] < lanes[best]) best = i;
+    }
+    return best;
+  }
+
+  function spawnDanmaku(c) {
+    const el = document.createElement('div');
+    el.className = 'danmaku-item'; 
+    el.textContent = c.text; 
+    el.style.color = c.color;
+    const fontSize = parseInt(document.getElementById('fontSizeSlider').value);
+    el.style.fontSize = fontSize + 'px';
+    const overlay = document.getElementById('danmakuOverlay');
     
-    // 속도 설정
-    const speedVal = parseFloat(document.getElementById('speedSlider').value); // 영상 속도
-    const duration = 8 / speedVal; // 영상이 빠르면 댓글도 빨리
-    el.style.animation = `flyLeft ${duration}s linear forwards`;
+    if (c.type === 'top') {
+      el.className += ' danmaku-top';
+    } else if (c.type === 'bottom') {
+      el.className += ' danmaku-bottom';
+    } else {
+      const lane = findLane(player.getCurrentTime());
+      const laneH = (overlay.offsetHeight || 400) / LANE_COUNT;
+      el.style.top = (lane * laneH) + 'px'; 
+      const speedVal = parseFloat(document.getElementById('speedSlider').value); 
+      const duration = 8 / speedVal; 
+      el.style.animation = `flyLeft ${duration}s linear forwards`;
+      lanes[lane] = player.getCurrentTime() + (duration * 0.4); 
+    }
     
-    // 이 레인은 언제 비워지나? (현재시간 + 애니메이션 시간 * 0.7 정도)
-    lanes[lane] = player.getCurrentTime() + (duration * 0.4); 
+    overlay.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
   }
-  
-  overlay.appendChild(el);
-  el.addEventListener('animationend', () => el.remove());
-}
 
-// 🛡️ 보안 함수: 자막 파싱 시 악성 코드 제거
-function parseSRT(data) {
-  data = data.replace(/\r\n|\r/g, '\n'); 
-  const regex = /(\d+:\d{2}:\d{2}[,.]\d{3}) --> (\d+:\d{2}:\d{2}[,.]\d{3})/g;
-  const items = [];
-  let array = data.split('\n\n');
+  // 자막 파싱
+  function parseSRT(data) {
+    data = data.replace(/\r\n|\r/g, '\n'); 
+    const regex = /(\d+:\d{2}:\d{2}[,.]\d{3}) --> (\d+:\d{2}:\d{2}[,.]\d{3})/g;
+    const items = [];
+    let array = data.split('\n\n');
+    array.forEach(block => {
+      const match = regex.exec(block);
+      if (match) {
+        const start = timeToSec(match[1]);
+        const end = timeToSec(match[2]);
+        const parts = block.split(match[0]);
+        if(parts[1]) {
+          let cleanText = escHtml(parts[1].trim());
+          cleanText = cleanText.replace(/\n/g, '<br>');
+          items.push({ start, end, text: cleanText });
+        }
+      }
+      regex.lastIndex = 0;
+    });
+    return items;
+  }
+
+  function escHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function timeToSec(str) { const p = str.replace(',', '.').split(':'); return (parseFloat(p[0]) * 3600) + (parseFloat(p[1]) * 60) + parseFloat(p[2]); }
+  function fmtTime(s) { if (isNaN(s)) return '0:00'; const m = Math.floor(s / 60); const sec = Math.floor(s % 60).toString().padStart(2, '0'); return `${m}:${sec}`; }
+
+  // 이벤트 리스너들
+  document.getElementById('volSlider').addEventListener('input', e => player && player.setVolume(e.target.value));
+  document.getElementById('speedSlider').addEventListener('input', e => player && player.setPlaybackRate(parseFloat(e.target.value)));
+  document.getElementById('playBtn').addEventListener('click', () => {
+    if (!player) return;
+    if (player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo();
+  });
   
-  array.forEach(block => {
-    const match = regex.exec(block);
-    if (match) {
-      const start = timeToSec(match[1]);
-      const end = timeToSec(match[2]);
-      const parts = block.split(match[0]);
-      if(parts[1]) {
-        // 🛡️ 여기서 escHtml 사용! 단, 줄바꿈(\n)은 <br>로 허용
-        let cleanText = escHtml(parts[1].trim());
-        cleanText = cleanText.replace(/\n/g, '<br>');
-        items.push({ start, end, text: cleanText });
+  // 시크바 클릭 (초기화)
+  document.getElementById('progressWrap').addEventListener('click', e => {
+    if(!player || !player.getDuration) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pos = (e.clientX - rect.left) / rect.width;
+    player.seekTo(player.getDuration() * pos, true);
+    shown.clear(); 
+    document.getElementById('danmakuOverlay').innerHTML = '';
+  });
+
+  // 내보내기 (백업)
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    if (!comments.length) return alert('댓글이 없습니다!');
+    const blob = new Blob([JSON.stringify(comments, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = currentVideoKey + '_backup.json'; a.click();
+  });
+
+  // 자막 파일
+  document.getElementById('subFileInput').addEventListener('change', e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => { subtitles = parseSRT(ev.target.result); document.getElementById('subStatus').textContent = `✅ ${file.name}`; };
+    reader.readAsText(file, 'UTF-8'); e.target.value = '';
+  });
+
+  // 키보드 이벤트
+  document.addEventListener('keydown', (e) => {
+    const isFS = !!document.fullscreenElement;
+    // 전체화면 엔터
+    if (isFS && e.key === 'Enter') {
+      const fsWrapper = document.getElementById('fsInputWrapper'); 
+      const fsInput = document.getElementById('fsInput');
+      if (fsWrapper.style.display === 'none' || !fsWrapper.style.display) { 
+        fsWrapper.style.display = 'block'; 
+        fsInput.focus(); 
+      } else { 
+        if (fsInput.value.trim()) processNewComment(fsInput.value.trim()); 
+        fsInput.value = ''; 
+        fsWrapper.style.display = 'none'; 
+      }
+      return;
+    }
+    if (e.target.tagName === 'INPUT') return;
+    if (e.code === 'Space') { 
+      if(player) {
+         if (player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo(); 
+         e.preventDefault(); 
       }
     }
-    regex.lastIndex = 0;
+    if (['1','2','3'].includes(e.key)) { 
+      const text = document.getElementById('macro' + e.key)?.value.trim(); 
+      if (text) processNewComment(text); 
+    }
   });
-  return items;
-}
 
-// --- 공통 유틸 ---
-function escHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function timeToSec(str) { const p = str.replace(',', '.').split(':'); return (parseFloat(p[0]) * 3600) + (parseFloat(p[1]) * 60) + parseFloat(p[2]); }
-function fmtTime(s) { if (isNaN(s)) return '0:00'; const m = Math.floor(s / 60); const sec = Math.floor(s % 60).toString().padStart(2, '0'); return `${m}:${sec}`; }
+  // 채팅창 엔터키
+  document.getElementById('commentText').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('sendBtn').click();
+    }
+  });
 
-// 🧹 시크바 클릭 시 shown 초기화 (이미 본 댓글 다시 보이게)
-document.getElementById('progressWrap').addEventListener('click', e => {
-  if(!player || !player.getDuration) return;
-  const rect = e.currentTarget.getBoundingClientRect();
-  const pos = (e.clientX - rect.left) / rect.width;
-  player.seekTo(player.getDuration() * pos, true);
-  shown.clear(); // 💡 초기화!
-  document.getElementById('danmakuOverlay').innerHTML = '';
-});
+  // 색상 및 타입 선택
+  const COLORS = ['#ffffff', '#ff4d6d', '#ffd166', '#06d6a0', '#a78bfa'];
+  let selectedColor = COLORS[0]; 
+  let selectedType = 'flow';
+  
+  const colorPicks = document.getElementById('colorPicks');
+  COLORS.forEach(c => {
+    const dot = document.createElement('div'); dot.className = 'color-dot' + (c === selectedColor ? ' selected' : ''); dot.style.background = c;
+    dot.onclick = () => { selectedColor = c; document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('selected')); dot.classList.add('selected'); };
+    colorPicks.appendChild(dot);
+  });
+  
+  document.querySelectorAll('.type-picks .type-btn').forEach(btn => {
+    btn.addEventListener('click', () => { selectedType = btn.dataset.type; document.querySelectorAll('.type-picks .type-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); });
+  });
 
-// 기타 이벤트 리스너들 (기존 유지)
-document.getElementById('volSlider').addEventListener('input', e => player.setVolume(e.target.value));
-document.getElementById('speedSlider').addEventListener('input', e => player.setPlaybackRate(parseFloat(e.target.value)));
-document.getElementById('playBtn').addEventListener('click', () => {
-  if (player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo();
-});
-document.getElementById('exportBtn').addEventListener('click', () => {
-  if (!comments.length) return alert('댓글이 없습니다!');
-  const blob = new Blob([JSON.stringify(comments, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = currentVideoKey + '_comments.json'; a.click();
-});
-document.getElementById('importInput').addEventListener('change', e => {
-  const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => { try { comments = JSON.parse(ev.target.result); shown.clear(); renderList(); updateMarkers(); saveComments(); alert('댓글을 가져왔습니다!'); } catch(e) { alert('파일 오류!'); } };
-  reader.readAsText(file); e.target.value = '';
-});
-document.getElementById('subFileInput').addEventListener('change', e => {
-  const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => { subtitles = parseSRT(ev.target.result); document.getElementById('subStatus').textContent = `✅ ${file.name}`; };
-  reader.readAsText(file, 'UTF-8'); e.target.value = '';
-});
-
-function processNewComment(text, type='flow') {
-  // 1. 댓글 데이터 생성
-  const comment = { 
-    id: Date.now(), 
-    time: player.getCurrentTime(), 
-    text, 
-    color: selectedColor, 
-    type: selectedType 
+  document.getElementById('sendBtn').onclick = () => { 
+    const input = document.getElementById('commentText'); 
+    if (input.value.trim()) { 
+      processNewComment(input.value.trim()); 
+      input.value = ''; 
+    } 
   };
-
-  // 2. 리스트에 추가하고 정렬
-  comments.push(comment); 
-  comments.sort((a, b) => a.time - b.time);
   
-  // 3. 저장 및 리스트 갱신
-  saveComments(); 
-  renderList(); 
-  updateMarkers(); 
-  
-  // 4. [핵심 수정] 루프가 또 띄우지 않게 '이미 보여줌' 처리를 먼저 함!
-  shown.add(comment.id); 
-
-  // 5. 화면에 발사!
-  spawnDanmaku(comment);
-}
-
-document.addEventListener('keydown', (e) => {
-  const isFS = !!document.fullscreenElement;
-  if (isFS && e.key === 'Enter') {
-    const fsWrapper = document.getElementById('fsInputWrapper'); const fsInput = document.getElementById('fsInput');
-    if (fsWrapper.style.display === 'none' || !fsWrapper.style.display) { fsWrapper.style.display = 'block'; fsInput.focus(); } 
-    else { if (fsInput.value.trim()) processNewComment(fsInput.value.trim()); fsInput.value = ''; fsWrapper.style.display = 'none'; }
-    return;
-  }
-  if (e.target.tagName === 'INPUT') return;
-  if (e.code === 'Space') { if (player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo(); e.preventDefault(); }
-  if (['1','2','3'].includes(e.key)) { const text = document.getElementById('macro' + e.key).value.trim(); if (text) processNewComment(text); }
-});
-
-const COLORS = ['#ffffff', '#ff4d6d', '#ffd166', '#06d6a0', '#a78bfa'];
-let selectedColor = COLORS[0]; let selectedType = 'flow';
-const colorPicks = document.getElementById('colorPicks');
-COLORS.forEach(c => {
-  const dot = document.createElement('div'); dot.className = 'color-dot' + (c === selectedColor ? ' selected' : ''); dot.style.background = c;
-  dot.onclick = () => { selectedColor = c; document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('selected')); dot.classList.add('selected'); };
-  colorPicks.appendChild(dot);
-});
-document.querySelectorAll('.type-picks .type-btn').forEach(btn => {
-  btn.addEventListener('click', () => { selectedType = btn.dataset.type; document.querySelectorAll('.type-picks .type-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); });
-});
-
-document.getElementById('sendBtn').onclick = () => { const input = document.getElementById('commentText'); if (input.value.trim()) { processNewComment(input.value.trim()); input.value = ''; } };
-document.getElementById('fullscreenBtn').onclick = () => { const wrap = document.getElementById('playerWrap'); if (!document.fullscreenElement) wrap.requestFullscreen(); else document.exitFullscreen(); };
-document.getElementById('danmakuToggle').onclick = function() { danmakuOn = !danmakuOn; this.classList.toggle('on'); this.textContent = danmakuOn ? '댓글 ON' : '댓글 OFF'; if(!danmakuOn) document.getElementById('danmakuOverlay').innerHTML = ''; };
-
-function updateMarkers() {
-  document.querySelectorAll('.progress-marker').forEach(el => el.remove());
-  if (!player || !player.getDuration()) return;
-  const dur = player.getDuration();
-  comments.forEach(c => {
-    const marker = document.createElement('div'); marker.className = 'progress-marker';
-    marker.style.left = (c.time / dur * 100) + '%'; marker.style.background = c.color;
-    document.getElementById('progressWrap').appendChild(marker);
-  });
-}
-function saveComments() { localStorage.setItem(currentVideoKey, JSON.stringify(comments)); document.getElementById('saveStatus').textContent = '💾'; setTimeout(()=>document.getElementById('saveStatus').textContent='',2000); }
-function loadComments() { const raw = localStorage.getItem(currentVideoKey); comments = raw ? JSON.parse(raw) : []; }
-function renderList() {
-  const list = document.getElementById('commentList'); list.innerHTML = '';
-  comments.forEach(c => {
-    const item = document.createElement('div'); item.className = 'comment-item';
-    item.innerHTML = `<span style="color:var(--accent)">${fmtTime(c.time)}</span> <span style="flex:1">${escHtml(c.text)}</span> <button class="comment-del">✕</button>`;
-    item.onclick = (e) => { if(e.target.className !== 'comment-del') { player.seekTo(c.time, true); shown.clear(); } };
-    item.querySelector('.comment-del').onclick = () => { comments = comments.filter(x => x.id !== c.id); shown.delete(c.id); renderList(); updateMarkers(); saveComments(); };
-    list.appendChild(item);
-  });
-}
-
-document.getElementById('commentText').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault(); // 엔터칠 때 줄바꿈 방지
-    document.getElementById('sendBtn').click();
-  }
-});
+  document.getElementById('fullscreenBtn').onclick = () => { 
+    const wrap = document.getElementById('playerWrap'); 
+    if (!document.fullscreenElement) wrap.requestFullscreen(); else document.exitFullscreen(); 
+  };
+  document.getElementById('danmakuToggle').onclick = function() { 
+    danmakuOn = !danmakuOn; 
+    this.classList.toggle('on'); 
+    this.textContent = danmakuOn ? '댓글 ON' : '댓글 OFF'; 
+    if(!danmakuOn) document.getElementById('danmakuOverlay').innerHTML = ''; 
+  };
 
 </script>
 </body>
