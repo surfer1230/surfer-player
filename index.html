@@ -367,12 +367,32 @@ document.getElementById('subFileInput').addEventListener('change', e => {
   reader.readAsText(file, 'UTF-8'); e.target.value = '';
 });
 
-// 댓글 처리 로직
 function processNewComment(text, type='flow') {
-  const comment = { id: Date.now(), time: player.getCurrentTime(), text, color: selectedColor, type: selectedType };
-  comments.push(comment); comments.sort((a, b) => a.time - b.time);
-  saveComments(); renderList(); updateMarkers(); spawnDanmaku(comment);
+  // 1. 댓글 데이터 생성
+  const comment = { 
+    id: Date.now(), 
+    time: player.getCurrentTime(), 
+    text, 
+    color: selectedColor, 
+    type: selectedType 
+  };
+
+  // 2. 리스트에 추가하고 정렬
+  comments.push(comment); 
+  comments.sort((a, b) => a.time - b.time);
+  
+  // 3. 저장 및 리스트 갱신
+  saveComments(); 
+  renderList(); 
+  updateMarkers(); 
+  
+  // 4. [핵심 수정] 루프가 또 띄우지 않게 '이미 보여줌' 처리를 먼저 함!
+  shown.add(comment.id); 
+
+  // 5. 화면에 발사!
+  spawnDanmaku(comment);
 }
+
 document.addEventListener('keydown', (e) => {
   const isFS = !!document.fullscreenElement;
   if (isFS && e.key === 'Enter') {
@@ -424,6 +444,14 @@ function renderList() {
     list.appendChild(item);
   });
 }
+
+document.getElementById('commentText').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault(); // 엔터칠 때 줄바꿈 방지
+    document.getElementById('sendBtn').click();
+  }
+});
+
 </script>
 </body>
 </html>
