@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>서퍼 플레이어 V5.0 (Masterpiece)</title>
+<title>서퍼 플레이어 V5.1 (관리자 모드)</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
 
@@ -277,13 +277,14 @@
   let danmakuOn = true;
   let currentVideoKey = document.getElementById('videoSelect').value;
   let animationFrameId = null;
-  
-  // 🔄 [수정] 리스너 중복 방지를 위한 변수
   let unsubscribeAdded = null;
   let unsubscribeRemoved = null;
 
   const LANE_COUNT = 15;
   const lanes = Array(LANE_COUNT).fill(0);
+
+  // 🔐 관리자 비밀번호
+  const ADMIN_PASSWORD = 'damnnn'; 
 
   window.onYouTubeIframeAPIReady = function() {
     player = new YT.Player('youtubePlayer', {
@@ -320,11 +321,9 @@
   });
 
   function connectDB() {
-    // 🔄 [수정] 이전 방의 감시원(리스너) 해고하기 (중복 방지 핵심!)
     if (unsubscribeAdded) unsubscribeAdded();
     if (unsubscribeRemoved) unsubscribeRemoved();
 
-    // 새 감시원 고용하고, 나중에 해고할 수 있게 변수에 저장
     unsubscribeAdded = onChildAdded(query(dbRef, orderByChild('time')), (snapshot) => {
       const data = snapshot.val();
       data.key = snapshot.key;
@@ -367,9 +366,23 @@
     setTimeout(() => status.textContent = '', 2000);
   }
 
-  window.deleteComment = function(key) {
-    if(confirm('지울까요?')) {
-      remove(ref(db, 'comments/' + currentVideoKey + '/' + key));
+  // 🛡️ [수정] V5.1 관리자 삭제 로직
+  window.deleteComment = function(key, isMine) {
+    // 1. 내 글이면: 바로 삭제 확인
+    if (isMine) {
+      if(confirm('이 댓글을 지울까요?')) {
+        remove(ref(db, 'comments/' + currentVideoKey + '/' + key));
+      }
+    } 
+    // 2. 남의 글이면: 비밀번호 확인
+    else {
+      const input = prompt("🔐 관리자 비밀번호를 입력하세요:");
+      if (input === ADMIN_PASSWORD) {
+        remove(ref(db, 'comments/' + currentVideoKey + '/' + key));
+        alert("관리자 권한으로 삭제했습니다! 😎");
+      } else if (input !== null) {
+        alert("비밀번호가 틀렸습니다! ⛔");
+      }
     }
   }
 
@@ -380,9 +393,11 @@
       const item = document.createElement('div');
       item.className = 'comment-item';
       
-      const delBtn = c.userId === myId 
-        ? `<button class="comment-del" onclick="deleteComment('${c.key}')">✕</button>` 
-        : '';
+      const isMine = c.userId === myId;
+      
+      // 🛡️ [수정] 모든 댓글에 삭제 버튼(X) 표시
+      // 내 글이면 바로 삭제, 남의 글이면 암호 물어보는 로직이 deleteComment 함수에 있음
+      const delBtn = `<button class="comment-del" onclick="deleteComment('${c.key}', ${isMine})">✕</button>`;
 
       item.innerHTML = `
         <span style="color:var(--accent); font-family:monospace;">${fmtTime(c.time)}</span>
@@ -435,7 +450,6 @@
       const activeSub = subtitles.find(s => now >= s.start && now <= s.end);
       if (activeSub) {
         subDiv.style.display = 'block';
-        // 🛡️ [수정] 보안 강화: innerHTML 쓰기 전에 escHtml로 한번 더 거름
         subDiv.innerHTML = activeSub.text; 
       } else {
         subDiv.style.display = 'none';
@@ -474,7 +488,6 @@
       const laneH = (overlay.offsetHeight || 400) / LANE_COUNT;
       el.style.top = (lane * laneH) + 'px'; 
       
-      // ⏩ [수정] 속도 슬라이더 값 반영
       const speedSlider = document.getElementById('speedSlider');
       const speedVal = speedSlider ? parseFloat(speedSlider.value) : 1; 
       const duration = 8 / speedVal; 
@@ -513,7 +526,6 @@
 
   document.getElementById('volSlider').addEventListener('input', e => player && player.setVolume(e.target.value));
   
-  // ⏩ [수정] 속도 조절 이벤트 추가
   document.getElementById('speedSlider').addEventListener('input', e => {
       const rate = parseFloat(e.target.value);
       if(player) player.setPlaybackRate(rate);
@@ -552,7 +564,6 @@
     const fsWrapper = document.getElementById('fsInputWrapper');
     const fsInput = document.getElementById('fsInput');
 
-    // 1. 전체화면 주접
     if (isFS && e.key === 'Enter') {
       e.preventDefault(); 
       if (getComputedStyle(fsWrapper).display === 'none') {
@@ -563,15 +574,13 @@
         if (fsInput.value.trim()) processNewComment(fsInput.value.trim());
         fsInput.value = '';
         fsWrapper.style.display = 'none';
-        document.getElementById('playerWrap').focus(); // 포커스 트랩 방지
+        document.getElementById('playerWrap').focus(); 
       }
       return;
     }
 
-    // 2. 채팅 치는 중이면 무시
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-    // 3. F키
     if (e.key === 'f' || e.key === 'F' || e.key === 'ㄹ') { 
       const wrap = document.getElementById('playerWrap');
       if (!document.fullscreenElement) { 
@@ -582,7 +591,6 @@
       }
     }
 
-    // 4. 스페이스바
     if (e.code === 'Space') { 
       if(player && player.getPlayerState) {
          if (player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo(); 
@@ -590,7 +598,6 @@
       }
     }
 
-    // 5. 숫자 주접
     const macroKeys = { '1': 'm1', '2': 'm2', '3': 'm3', '4': 'm4' };
     if (macroKeys.hasOwnProperty(e.key)) {
       const inputEl = document.getElementById(macroKeys[e.key]);
