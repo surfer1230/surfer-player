@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>서퍼 플레이어 V4.0 (Live)</title>
+<title>서퍼 플레이어 V4.5 (테스트)</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
 
@@ -21,21 +21,25 @@
 
   body {
     background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', sans-serif;
-    min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 30px 20px;
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px 10px;
+    transition: background 0.3s;
   }
 
-  h1 { font-family: 'Gowun Dodum', sans-serif; font-size: 2.5rem; letter-spacing: 0.05em; margin-bottom: 6px; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 20px; }
+  h1 { font-family: 'Gowun Dodum', sans-serif; font-size: 2rem; letter-spacing: 0.05em; margin-bottom: 6px; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .subtitle { color: var(--muted); font-size: 0.8rem; margin-bottom: 20px; }
 
-  .top-panels { width: 100%; max-width: 860px; display: flex; gap: 15px; margin-bottom: 18px; flex-wrap: wrap; }
-  .settings-box { flex: 1; min-width: 300px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; }
-  .settings-box h3 {font-family: 'Gowun Dodum', sans-serif; font-size: 1.1rem; color: var(--accent2); margin-bottom: 10px; }
-  .macro-row { display: flex; gap: 8px; margin-bottom: 6px; align-items: center; font-size: 0.85rem;}
-  .macro-row input { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 6px; border-radius: 5px; outline: none; color:white; }
+  .top-panels { width: 100%; max-width: 860px; display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+  .settings-box { flex: 1; min-width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; }
+  .settings-box h3 {font-family: 'Gowun Dodum', sans-serif; font-size: 1rem; color: var(--accent2); margin-bottom: 10px; }
+  
+  /* 주접 버튼 스타일 */
+  .macro-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+  .macro-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px 0; border-radius: 6px; cursor: pointer; font-family: 'Gowun Dodum'; transition: 0.2s; }
+  .macro-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(255, 77, 109, 0.1); }
 
-  .room-selector { width: 100%; max-width: 860px; background: var(--surface); border: 1px solid var(--accent2); border-radius: 12px; padding: 15px 20px; margin-bottom: 18px; display: flex; align-items: center; gap: 15px; }
-  .room-selector label { font-family: 'Gowun Dodum', sans-serif; font-size: 1.2rem; color: var(--accent2); }
-  .room-selector select { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 10px; border-radius: 8px; cursor: pointer; }
+  .room-selector { width: 100%; max-width: 860px; background: var(--surface); border: 1px solid var(--accent2); border-radius: 12px; padding: 12px 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+  .room-selector label { font-family: 'Gowun Dodum', sans-serif; font-size: 1.1rem; color: var(--accent2); white-space: nowrap; }
+  .room-selector select { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; cursor: pointer; max-width: 100%; }
 
   .player-wrap { position: relative; width: 100%; max-width: 860px; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
   .player-wrap:fullscreen { max-width: 100%; width: 100vw; height: 100vh; border: none; border-radius: 0; }
@@ -49,39 +53,40 @@
     background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 8px; display: none;
   }
   #fsInputWrapper {
-    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 60%;
-    background: rgba(0, 0, 0, 0.7); border: 2px solid var(--accent2); border-radius: 30px; padding: 12px 25px;
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 70%;
+    background: rgba(0, 0, 0, 0.7); border: 2px solid var(--accent2); border-radius: 30px; padding: 10px 20px;
     z-index: 9999; display: none; text-align: center;
   }
-  #fsInput { width: 100%; background: transparent; border: none; color: white; font-size: 1.2rem; outline: none; text-align: center; }
+  #fsInput { width: 100%; background: transparent; border: none; color: white; font-size: 1.1rem; outline: none; text-align: center; }
 
-  .controls { width: 100%; max-width: 860px; background: var(--surface); border: 1px solid var(--border); border-radius: 0 0 12px 12px; padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .controls { width: 100%; max-width: 860px; background: var(--surface); border: 1px solid var(--border); border-radius: 0 0 12px 12px; padding: 12px 15px; display: flex; flex-direction: column; gap: 10px; }
   .progress-wrap { position: relative; height: 4px; background: var(--border); border-radius: 2px; cursor: pointer; }
   #progressBar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; pointer-events: none; }
   .progress-marker { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); pointer-events: none; }
 
-  .ctrl-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  button.ctrl-btn { background: none; border: none; color: var(--text); cursor: pointer; padding: 6px; font-size: 0.85rem; border: 1px solid var(--border); border-radius: 6px; }
+  .ctrl-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  button.ctrl-btn { background: none; border: none; color: var(--text); cursor: pointer; padding: 5px; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 6px; min-width: 30px;}
   button.ctrl-btn:hover { background: var(--border); }
-  .toggle-btn { margin-left: auto; padding: 5px 12px; border-radius: 20px; font-size: 0.72rem; border: 1px solid var(--border); cursor: pointer; background: none; color: var(--muted); }
+  .toggle-btn { margin-left: auto; padding: 5px 10px; border-radius: 20px; font-size: 0.7rem; border: 1px solid var(--border); cursor: pointer; background: none; color: var(--muted); }
   .toggle-btn.on { border-color: var(--accent2); color: var(--accent2); background: rgba(124,58,237,0.1); }
 
-  .comment-panel { width: 100%; max-width: 860px; margin-top: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
-  .comment-panel h2 { font-family: 'Gowun Dodum', sans-serif; font-size: 1.2rem; color: var(--muted); margin-bottom: 14px; }
+  .comment-panel { width: 100%; max-width: 860px; margin-top: 15px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; }
+  .comment-panel h2 { font-family: 'Gowun Dodum', sans-serif; font-size: 1.1rem; color: var(--muted); margin-bottom: 12px; }
   
-  .type-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); padding: 5px 12px; font-size: 0.75rem; cursor: pointer; transition: all 0.15s; }
+  .type-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); padding: 5px 10px; font-size: 0.75rem; cursor: pointer; transition: all 0.15s; }
   .type-btn.selected, .type-btn:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(124,58,237,0.08); }
   .type-picks { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
 
   .comment-input-row { display: flex; gap: 8px; margin-bottom: 10px; }
-  #commentText { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 9px 14px; outline: none; }
+  #commentText { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 9px 12px; outline: none; }
   .color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
   .color-dot.selected { border-color: #fff; }
-  .send-btn { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 8px; color: #fff; padding: 9px 20px; font-family: 'Gowun Dodum', sans-serif; cursor: pointer; }
+  .send-btn { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 8px; color: #fff; padding: 9px 15px; font-family: 'Gowun Dodum', sans-serif; cursor: pointer; white-space: nowrap; }
 
   .comment-list { margin-top: 16px; max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
   .comment-item { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; background: var(--bg); cursor: pointer; }
-  .comment-del { margin-left: auto; color: var(--muted); background: none; border: none; cursor: pointer; }
+  .comment-del { margin-left: auto; color: var(--muted); background: none; border: none; cursor: pointer; padding: 2px 5px; }
+  .comment-del:hover { color: var(--accent); }
 
   .danmaku-item { position: absolute; left: 100%; white-space: nowrap; font-weight: 700; font-family: 'Gowun Dodum', sans-serif; text-shadow: 2px 2px 4px rgba(0,0,0,1); pointer-events: none; will-change: transform; z-index: 100; }
   .danmaku-top { top: 10px; left: 50%; transform: translateX(-50%); animation: fadeInOut 4s ease forwards; }
@@ -89,32 +94,60 @@
   
   @keyframes flyLeft { from { transform: translateX(0); } to { transform: translateX(calc(-100vw - 100%)); } }
   @keyframes fadeInOut { 0% { opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { opacity: 0; } }
+
+  /* 모바일 대응 */
+  @media (max-width: 600px) {
+    h1 { font-size: 1.5rem; }
+    .top-panels { flex-direction: column; }
+    .controls { padding: 10px; }
+    #subtitleDisplay { font-size: 1rem; width: 95%; }
+  }
+
+  /* 🎹 여기에 아까 내가 준 코드를 붙여넣는 거야! */
+  .hotkey {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin-right: 6px;
+    font-size: 0.85em;
+    font-weight: bold;
+    color: var(--accent);
+    box-shadow: 0 2px 0 var(--border);
+  }
+  
 </style>
 </head>
 <body>
 
 <h1>서퍼 플레이어 🏄‍♀️</h1>
-<p class="subtitle">V4.0 파이어베이스 에디션 (Live)</p>
+<p class="subtitle">같이 덕질합시다</p>
 
 <div class="top-panels">
   <div class="settings-box">
     <h3>🎨 테마 꾸미기</h3>
-    배경: <input type="color" id="themeBg" value="#0a0a0f">
-    포인트: <input type="color" id="themeAccent" value="#ff4d6d">
+    <div style="display:flex; gap:10px; align-items:center; font-size:0.85rem;">
+      <label>배경 <input type="color" id="themeBg" value="#0a0a0f"></label>
+      <label>포인트 <input type="color" id="themeAccent" value="#ff4d6d"></label>
+    </div>
   </div>
   <div class="settings-box">
-    <h3>⚡ 원터치 주접</h3>
-    <div class="macro-row"><span>[1]</span><input type="text" id="macro1" value="꺄아아악!!! ㅠㅠ"></div>
-    <div class="macro-row"><span>[2]</span><input type="text" id="macro2" value="연출 미쳤다..."></div>
+    <h3>⚡ 댓글 단축키</h3>
+  <div class="macro-grid">
+      <button class="macro-btn" data-msg="ㅋㅋㅋㅋㅋㅋㅋ"><span class="hotkey">1</span>ㅋㅋㅋ</button>
+      <button class="macro-btn" data-msg="ㅠㅠㅠㅠㅠㅠㅠ"><span class="hotkey">2</span>ㅠㅠㅠ</button>
+      <button class="macro-btn" data-msg="미쳤다..."><span class="hotkey">3</span>미쳤다</button>
+      <button class="macro-btn" data-msg="?"><span class="hotkey">4</span>?</button>
+    </div>
   </div>
 </div>
 
 <div class="room-selector">
   <label for="videoSelect">📺 방 선택:</label>
   <select id="videoSelect">
-    <option value="dQw4w9WgXcQ">유튜브 테스트용 영상</option>
-    <option value="lDUD3omAlHA">걸룰즈(Girlverse) 예고편</option>
+    <option value="lDUD3omAlHA">걸룰즈 예고편</option>
     <option value="dObc3WRi6TU">플루토 EP 1-1</option>
+    <option value="0X5D_PJ8R7E">하모니 시크릿 1</option>
   </select>
 </div>
 
@@ -129,17 +162,14 @@
   <div class="progress-wrap" id="progressWrap"><div id="progressBar"></div></div>
   <div class="ctrl-row">
     <button class="ctrl-btn" id="playBtn">▶</button>
-    <span style="font-size:0.72rem;color:var(--muted);margin-left:5px;">소리</span>
-    <input type="range" id="volSlider" min="0" max="100" step="5" value="100" style="width:60px;">
-    <span id="timeDisplay">0:00 / 0:00</span>
+    <span style="font-size:0.72rem;color:var(--muted);">소리</span>
+    <input type="range" id="volSlider" min="0" max="100" step="5" value="100" style="width:50px;">
+    <span id="timeDisplay" style="font-size:0.75rem; color:var(--muted);">0:00 / 0:00</span>
 
-    <span style="font-size:0.72rem;color:var(--muted);margin-left:10px;">속도</span>
-    <input type="range" id="speedSlider" min="0.5" max="2" step="0.25" value="1" style="width:50px;">
+    <span style="font-size:0.72rem;color:var(--muted);margin-left:auto;">글자</span>
+    <input type="range" id="fontSizeSlider" min="16" max="48" step="2" value="24" style="width:50px;">
     
-    <span style="font-size:0.72rem;color:var(--muted);margin-left:10px;">글자</span>
-    <input type="range" id="fontSizeSlider" min="16" max="48" step="2" value="26" style="width:50px;">
-    
-    <button class="ctrl-btn" id="fullscreenBtn" style="margin-left:10px;">🔲 전체화면</button>
+    <button class="ctrl-btn" id="fullscreenBtn">🔲</button>
     <button class="toggle-btn on" id="danmakuToggle">댓글 ON</button>
   </div>
 </div>
@@ -149,7 +179,7 @@
     <h2 style="margin-bottom:0;">실시간 채팅</h2>
     <div style="display:flex;gap:8px;align-items:center;">
       <span id="saveStatus" style="font-size:0.72rem;color:var(--accent2);font-weight:bold;"></span>
-      <button class="type-btn" id="exportBtn">📤 백업하기</button>
+      <button class="type-btn" id="exportBtn">📤 백업</button>
     </div>
   </div>
 
@@ -160,28 +190,26 @@
   </div>
 
   <div class="type-picks" id="typePicks">
-    <button class="type-btn selected" data-type="flow">흐르는 댓글</button>
-    <button class="type-btn" data-type="top">상단 고정</button>
-    <button class="type-btn" data-type="bottom">하단 고정</button>
+    <button class="type-btn selected" data-type="flow">흐름</button>
+    <button class="type-btn" data-type="top">상단</button>
+    <button class="type-btn" data-type="bottom">하단</button>
   </div>
 
   <div class="comment-list" id="commentList"></div>
 
   <div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
     <label class="type-btn" style="cursor:pointer;">
-      📄 자막 파일 (SRT/VTT)
+      📄 자막 (SRT/VTT)
       <input type="file" id="subFileInput" accept=".srt,.vtt" style="display:none;">
     </label>
-    <span id="subStatus" style="font-size:0.78rem;color:var(--muted);">SRT / VTT 지원</span>
+    <span id="subStatus" style="font-size:0.78rem;color:var(--muted);"></span>
   </div>
 </div>
 
 <script type="module">
-  // 1. 파이어베이스 라이브러리
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getDatabase, ref, push, onChildAdded, onChildRemoved, remove, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-  // 2. 설정
   const firebaseConfig = {
     apiKey: "AIzaSyA0FqPa-Nr3L545wJpgUSV3GGdYbXn-ahQ",
     authDomain: "surfer-player.firebaseapp.com",
@@ -194,13 +222,20 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // 🔥 [핵심 수정] 유튜브 API를 여기서 강제로 로딩 (순서 꼬임 방지)
+  // --- 🕵️‍♀️ 1. 사용자 ID 생성 (내 글만 지우기 위해) ---
+  let myId = localStorage.getItem('surfer_uid');
+  if (!myId) {
+    myId = 'user_' + Date.now() + Math.floor(Math.random() * 1000);
+    localStorage.setItem('surfer_uid', myId);
+  }
+
+  // 유튜브 API 강제 로드
   const tag = document.createElement('script');
   tag.src = "https://www.youtube.com/iframe_api";
   const firstScriptTag = document.getElementsByTagName('script')[0];
   firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-  // --- 전역 변수 설정 ---
+  // 전역 변수
   let player;
   let comments = []; 
   let subtitles = [];
@@ -211,7 +246,7 @@
   const LANE_COUNT = 15;
   const lanes = Array(LANE_COUNT).fill(0);
 
-  // --- 유튜브 API 연결 ---
+  // API 준비
   window.onYouTubeIframeAPIReady = function() {
     player = new YT.Player('youtubePlayer', {
       videoId: currentVideoKey,
@@ -231,51 +266,37 @@
     }
   }
 
-  // --- 🔥 파이어베이스 연동 핵심 로직 ---
-  let dbRef = ref(db, 'comments/' + currentVideoKey); // 현재 방의 주소
+  let dbRef = ref(db, 'comments/' + currentVideoKey);
 
-  // 1. 방 바꿀 때 (비디오 변경)
   document.getElementById('videoSelect').addEventListener('change', (e) => {
     currentVideoKey = e.target.value;
     player.loadVideoById(currentVideoKey);
-    
-    // 기존 댓글 싹 비우고
     comments = [];
     shown.clear();
     document.getElementById('commentList').innerHTML = '';
     document.getElementById('danmakuOverlay').innerHTML = '';
     document.getElementById('progressWrap').querySelectorAll('.progress-marker').forEach(el => el.remove());
-
-    // 새 방으로 접속!
-    // 주의: 리스너 해제는 복잡해서 생략(새로고침 권장하지만, 일단 덮어씀)
     dbRef = ref(db, 'comments/' + currentVideoKey);
     connectDB(); 
   });
 
-  // 2. DB에서 댓글 실시간 수신 (가장 중요!)
   function connectDB() {
-    // 댓글이 추가되면(남이 쓰든 내가 쓰든)
     onChildAdded(query(dbRef, orderByChild('time')), (snapshot) => {
       const data = snapshot.val();
-      data.key = snapshot.key; // 삭제할 때 필요해서 키 저장
-      
+      data.key = snapshot.key;
       comments.push(data);
-      comments.sort((a, b) => a.time - b.time); // 시간순 정렬
-      
+      comments.sort((a, b) => a.time - b.time);
       renderList();
       updateMarkers();
-      
-      // 방금 들어온 따끈한 댓글이고, 현재 재생 시간 근처라면 바로 띄우기 (옵션)
       if (player && player.getPlayerState() === 1) {
         const now = player.getCurrentTime();
-        if (Math.abs(data.time - now) < 2) { // 2초 이내 오차면 바로 발사
+        if (Math.abs(data.time - now) < 2) {
            spawnDanmaku(data);
            shown.add(data.id);
         }
       }
     });
 
-    // 댓글이 삭제되면
     onChildRemoved(dbRef, (snapshot) => {
       const key = snapshot.key;
       comments = comments.filter(c => c.key !== key);
@@ -284,49 +305,47 @@
     });
   }
   
-  // 최초 연결
   connectDB();
 
-  // 3. 댓글 쓰기 (이제 로컬 저장이 아니라 서버로 보냄!)
   function processNewComment(text) {
     if (!player) return;
     const newComment = {
       id: Date.now(),
+      userId: myId, // ✨ 작성자 ID 저장
       time: player.getCurrentTime(),
       text: text,
       color: selectedColor,
       type: selectedType
     };
-    
-    // 🔥 서버로 전송! (push 하면 onChildAdded가 알아서 내 화면에도 띄워줌)
     push(dbRef, newComment);
-    
-    // 저장 알림
     const status = document.getElementById('saveStatus');
     status.textContent = '☁️ 전송!';
     setTimeout(() => status.textContent = '', 2000);
   }
 
-  // 4. 댓글 삭제 (서버에서 삭제)
   window.deleteComment = function(key) {
-    if(confirm('진짜 지울까요?')) {
+    if(confirm('지울까요?')) {
       remove(ref(db, 'comments/' + currentVideoKey + '/' + key));
     }
   }
 
-  // --- 렌더링 및 UI 로직 (기존과 비슷함) ---
   function renderList() {
     const list = document.getElementById('commentList');
     list.innerHTML = '';
     comments.forEach(c => {
       const item = document.createElement('div');
       item.className = 'comment-item';
+      
+      // ✨ 내 글인 경우에만 삭제 버튼 보이기
+      const delBtn = c.userId === myId 
+        ? `<button class="comment-del" onclick="deleteComment('${c.key}')">✕</button>` 
+        : '';
+
       item.innerHTML = `
-        <span style="color:var(--accent)">${fmtTime(c.time)}</span>
+        <span style="color:var(--accent); font-family:monospace;">${fmtTime(c.time)}</span>
         <span style="flex:1">${escHtml(c.text)}</span>
-        <button class="comment-del" onclick="deleteComment('${c.key}')">✕</button>
+        ${delBtn}
       `;
-      // 클릭 시 이동
       item.onclick = (e) => { 
         if(e.target.className !== 'comment-del') { 
           player.seekTo(c.time, true); 
@@ -340,7 +359,6 @@
 
   function updateMarkers() {
     const wrap = document.getElementById('progressWrap');
-    // 기존 마커 제거
     wrap.querySelectorAll('.progress-marker').forEach(e => e.remove());
     if (!player || !player.getDuration) return;
     const dur = player.getDuration();
@@ -353,28 +371,24 @@
     });
   }
 
-  // --- 탄막 루프 (기존 유지) ---
   function startDanmakuLoop() {
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
     function loop() {
       if (!player || !player.getCurrentTime) return;
       if (player.getPlayerState() !== YT.PlayerState.PLAYING) return;
-      
       const now = player.getCurrentTime();
       const dur = player.getDuration();
       if(dur) {
         document.getElementById('progressBar').style.width = (now / dur) * 100 + '%';
         document.getElementById('timeDisplay').textContent = `${fmtTime(now)} / ${fmtTime(dur)}`;
       }
-
       comments.forEach(c => {
         if (danmakuOn && !shown.has(c.id) && c.time <= now && c.time > now - 0.5) {
           spawnDanmaku(c);
           shown.add(c.id);
         }
       });
-
-      // 자막 표시
+      // 자막
       const subDiv = document.getElementById('subtitleDisplay');
       const activeSub = subtitles.find(s => now >= s.start && now <= s.end);
       if (activeSub) {
@@ -383,13 +397,11 @@
       } else {
         subDiv.style.display = 'none';
       }
-
       animationFrameId = requestAnimationFrame(loop);
     }
     loop();
   }
 
-  // --- 기타 유틸 및 이벤트 ---
   function findLane(now) {
     let best = 0;
     for (let i = 0; i < LANE_COUNT; i++) {
@@ -403,10 +415,14 @@
     el.className = 'danmaku-item'; 
     el.textContent = c.text; 
     el.style.color = c.color;
-    const fontSize = parseInt(document.getElementById('fontSizeSlider').value);
-    el.style.fontSize = fontSize + 'px';
-    const overlay = document.getElementById('danmakuOverlay');
     
+    // ✨ 2. 모바일이면 폰트 크기 60%로 줄이기
+    const isMobile = window.innerWidth < 600;
+    const baseSize = parseInt(document.getElementById('fontSizeSlider').value);
+    const finalSize = isMobile ? baseSize * 0.6 : baseSize;
+    el.style.fontSize = finalSize + 'px';
+
+    const overlay = document.getElementById('danmakuOverlay');
     if (c.type === 'top') {
       el.className += ' danmaku-top';
     } else if (c.type === 'bottom') {
@@ -415,18 +431,16 @@
       const lane = findLane(player.getCurrentTime());
       const laneH = (overlay.offsetHeight || 400) / LANE_COUNT;
       el.style.top = (lane * laneH) + 'px'; 
-      const speedVal = parseFloat(document.getElementById('speedSlider').value); 
+      const speedVal = 1; 
       const duration = 8 / speedVal; 
       el.style.animation = `flyLeft ${duration}s linear forwards`;
       lanes[lane] = player.getCurrentTime() + (duration * 0.4); 
     }
-    
     overlay.appendChild(el);
     el.addEventListener('animationend', () => el.remove());
   }
 
-  // 자막 파싱
-  function parseSRT(data) {
+  function parseSRT(data) { /* (기존과 동일) */
     data = data.replace(/\r\n|\r/g, '\n'); 
     const regex = /(\d+:\d{2}:\d{2}[,.]\d{3}) --> (\d+:\d{2}:\d{2}[,.]\d{3})/g;
     const items = [];
@@ -452,15 +466,12 @@
   function timeToSec(str) { const p = str.replace(',', '.').split(':'); return (parseFloat(p[0]) * 3600) + (parseFloat(p[1]) * 60) + parseFloat(p[2]); }
   function fmtTime(s) { if (isNaN(s)) return '0:00'; const m = Math.floor(s / 60); const sec = Math.floor(s % 60).toString().padStart(2, '0'); return `${m}:${sec}`; }
 
-  // 이벤트 리스너들
   document.getElementById('volSlider').addEventListener('input', e => player && player.setVolume(e.target.value));
-  document.getElementById('speedSlider').addEventListener('input', e => player && player.setPlaybackRate(parseFloat(e.target.value)));
   document.getElementById('playBtn').addEventListener('click', () => {
     if (!player) return;
     if (player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo();
   });
   
-  // 시크바 클릭 (초기화)
   document.getElementById('progressWrap').addEventListener('click', e => {
     if(!player || !player.getDuration) return;
     const rect = e.currentTarget.getBoundingClientRect();
@@ -470,14 +481,12 @@
     document.getElementById('danmakuOverlay').innerHTML = '';
   });
 
-  // 내보내기 (백업)
   document.getElementById('exportBtn').addEventListener('click', () => {
     if (!comments.length) return alert('댓글이 없습니다!');
     const blob = new Blob([JSON.stringify(comments, null, 2)], { type: 'application/json' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = currentVideoKey + '_backup.json'; a.click();
   });
 
-  // 자막 파일
   document.getElementById('subFileInput').addEventListener('change', e => {
     const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
@@ -485,10 +494,13 @@
     reader.readAsText(file, 'UTF-8'); e.target.value = '';
   });
 
-  // 키보드 이벤트
   document.addEventListener('keydown', (e) => {
+    
+    // 1. 만약 지금 채팅창에 글을 쓰는 중이라면? -> 단축키 작동 금지! 🛑
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    // 2. 전체화면일 때 엔터키 처리
     const isFS = !!document.fullscreenElement;
-    // 전체화면 엔터
     if (isFS && e.key === 'Enter') {
       const fsWrapper = document.getElementById('fsInputWrapper'); 
       const fsInput = document.getElementById('fsInput');
@@ -502,20 +514,30 @@
       }
       return;
     }
-    if (e.target.tagName === 'INPUT') return;
+
+    // 3. 스페이스바 (재생/일시정지)
     if (e.code === 'Space') { 
       if(player) {
          if (player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo(); 
-         e.preventDefault(); 
+         e.preventDefault(); // 스크롤 내려감 방지
       }
     }
-    if (['1','2','3'].includes(e.key)) { 
-      const text = document.getElementById('macro' + e.key)?.value.trim(); 
-      if (text) processNewComment(text); 
+
+    // 4. 숫자키 1, 2, 3, 4 주접 발사! 🔥
+    const macroKeys = { '1': 0, '2': 1, '3': 2, '4': 3 };
+    if (macroKeys.hasOwnProperty(e.key)) {
+      const buttons = document.querySelectorAll('.macro-btn');
+      const targetBtn = buttons[macroKeys[e.key]];
+      if (targetBtn) {
+        targetBtn.click(); // 버튼을 클릭한 것처럼 속임!
+        
+        // (선택사항) 버튼 눌리는 효과 주기
+        targetBtn.style.background = 'var(--accent)';
+        setTimeout(() => targetBtn.style.background = '', 150);
+      }
     }
   });
 
-  // 채팅창 엔터키
   document.getElementById('commentText').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -523,7 +545,22 @@
     }
   });
 
-  // 색상 및 타입 선택
+  // ✨ 3. 주접 버튼 (매크로) 이벤트 연결
+  document.querySelectorAll('.macro-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      processNewComment(btn.dataset.msg);
+    });
+  });
+
+  // ✨ 4. 테마 꾸미기 이벤트 연결 (배경, 포인트색)
+  document.getElementById('themeBg').addEventListener('input', (e) => {
+    document.documentElement.style.setProperty('--bg', e.target.value);
+  });
+  document.getElementById('themeAccent').addEventListener('input', (e) => {
+    document.documentElement.style.setProperty('--accent', e.target.value);
+    document.documentElement.style.setProperty('--accent2', e.target.value);
+  });
+
   const COLORS = ['#ffffff', '#ff4d6d', '#ffd166', '#06d6a0', '#a78bfa'];
   let selectedColor = COLORS[0]; 
   let selectedType = 'flow';
@@ -557,7 +594,6 @@
     this.textContent = danmakuOn ? '댓글 ON' : '댓글 OFF'; 
     if(!danmakuOn) document.getElementById('danmakuOverlay').innerHTML = ''; 
   };
-
 </script>
 </body>
 </html>
