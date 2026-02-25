@@ -366,21 +366,21 @@
     setTimeout(() => status.textContent = '', 2000);
   }
 
-  // 🛡️ [수정] V5.1 관리자 삭제 로직
-  window.deleteComment = function(key, isMine) {
-    // 1. 내 글이면: 바로 삭제 확인
+   window.deleteComment = function(key, isMine) {
     if (isMine) {
       if(confirm('이 댓글을 지울까요?')) {
         remove(ref(db, 'comments/' + currentVideoKey + '/' + key));
       }
     } 
-    // 2. 남의 글이면: 비밀번호 확인
     else {
       const input = prompt("🔐 관리자 비밀번호를 입력하세요:");
-      if (input === ADMIN_PASSWORD) {
+      if (input === null) return; 
+
+      // ✨ 핵심: btoa(input)이 서이가 입력한 글자를 외계어로 바꿔주는 마법이야!
+      if (btoa(input) === ADMIN_HASH) {
         remove(ref(db, 'comments/' + currentVideoKey + '/' + key));
         alert("관리자 권한으로 삭제했습니다! 😎");
-      } else if (input !== null) {
+      } else {
         alert("비밀번호가 틀렸습니다! ⛔");
       }
     }
