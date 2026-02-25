@@ -189,7 +189,7 @@
   <div id="youtubePlayer"></div>
   <div id="danmakuOverlay"></div>
   <div id="subtitleDisplay"></div>
-  <div id="fsInputWrapper"><input type="text" id="fsInput" placeholder="엔터치고 주접 발사!"></div>
+  <div id="fsInputWrapper"><input type="text" id="fsInput" placeholder="엔터치고 댓글 등록!"></div>
 </div>
 
 <div class="controls">
@@ -221,7 +221,7 @@
   </div>
 
   <div class="comment-input-row">
-    <input type="text" id="commentText" placeholder="함께 주접 떨어봐요!">
+    <input type="text" id="commentText" placeholder="함께 덕질을 해봐요!">
     <div id="colorPicks" style="display:flex; gap:5px;"></div>
     <button class="send-btn" id="sendBtn">발사 !</button>
   </div>
@@ -283,8 +283,7 @@
   const LANE_COUNT = 15;
   const lanes = Array(LANE_COUNT).fill(0);
 
-  // 🔐 관리자 비밀번호
-  const ADMIN_HASH = 'ZGFtbm5u';
+  const ADMIN_HASH = 'ZGFtbm5u'; 
 
   window.onYouTubeIframeAPIReady = function() {
     player = new YT.Player('youtubePlayer', {
@@ -376,7 +375,6 @@
       const input = prompt("🔐 관리자 비밀번호를 입력하세요:");
       if (input === null) return; 
 
-      // ✨ 핵심: btoa(input)이 서이가 입력한 글자를 외계어로 바꿔주는 마법이야!
       if (btoa(input) === ADMIN_HASH) {
         remove(ref(db, 'comments/' + currentVideoKey + '/' + key));
         alert("관리자 권한으로 삭제했습니다! 😎");
@@ -395,8 +393,6 @@
       
       const isMine = c.userId === myId;
       
-      // 🛡️ [수정] 모든 댓글에 삭제 버튼(X) 표시
-      // 내 글이면 바로 삭제, 남의 글이면 암호 물어보는 로직이 deleteComment 함수에 있음
       const delBtn = `<button class="comment-del" onclick="deleteComment('${c.key}', ${isMine})">✕</button>`;
 
       item.innerHTML = `
@@ -673,7 +669,7 @@
   
 </script>
 
-<div class="modal-overlay" id="helpModal">
+div class="modal-overlay" id="helpModal">
   <div class="modal-content">
     <h2>🏄‍♀️ 서퍼 플레이어 가이드</h2>
     <ul>
@@ -681,13 +677,13 @@
       <li>🛡️ <b>보안 및 개인정보:</b> 어떠한 개인정보도 수집하지 않습니다. 삭제용 ID는 사용자 기기에만 임시 저장되는 익명 방식입니다.</li>
       <li>💻 <b>환경 최적화:</b> 본 사이트는 모바일보다 <b>PC 웹 브라우저에 최적화</b>되어 있습니다.</li>
       <li>⌨️ <b>단축키 가이드:</b><br>
-        - [F] : 전체화면 토글<br>
+        - [F] : 전체화면<br>
         - [Space] : 재생/일시정지<br>
         - [Enter] : 전체화면 채팅창 열기/전송<br>
-        - [1~4] : 설정된 주접 즉시 발사
+        - [1~4] : 설정된 댓글 즉시 전송
       </li>
     </ul>
-    <button class="close-modal-btn" id="closeHelp">확인, 주접 떨러 가기!</button>
+    <button class="close-modal-btn" id="closeHelp">확인, 덕질 하러 가기!</button>
   </div>
 </div>
 </body>
