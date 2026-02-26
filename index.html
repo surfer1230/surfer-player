@@ -233,6 +233,37 @@
     transform: scale(0.95); 
     transition: transform 0.05s; 
   }
+  
+  .room-selector select {
+    appearance: none;  
+    -webkit-appearance: none; 
+    
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF8C42' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    
+    padding-right: 40px; 
+    font-family: 'Gowun Dodum', sans-serif; 
+    font-weight: bold;
+    transition: all 0.2s;
+  }
+  
+  .room-selector select:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: var(--accent);
+  }
+  
+  .room-selector select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(255, 140, 66, 0.3);
+  }
+
+  .room-selector option {
+    background-color: var(--surface); 
+    color: var(--text);               
+  }
 </style>
 </head>
 <body>
