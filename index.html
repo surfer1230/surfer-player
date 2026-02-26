@@ -292,6 +292,14 @@
     font-size: 1.2rem;
     margin-right: 6px;
   }
+ 
+  .player-wrap:fullscreen #subtitleDisplay {
+    bottom: 100px !important;  
+    font-size: 2rem !important;  
+    padding: 10px 20px;        
+    max-width: 80%;            
+  }
+
 </style>
 </head>
 <body>
@@ -696,6 +704,12 @@
     reader.readAsText(file, 'UTF-8'); e.target.value = '';
   });
 
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+      document.getElementById('fsInputWrapper').style.display = 'none'; 
+      document.getElementById('fsInput').value = ''; 
+    }
+  });
   document.addEventListener('keydown', (e) => {
     const isFS = !!document.fullscreenElement;
     const fsWrapper = document.getElementById('fsInputWrapper');
