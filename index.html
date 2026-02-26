@@ -186,8 +186,11 @@
   }
 
   .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-    display: none; align-items: center; justify-content: center; z-index: 10000;
+    position: fixed !important;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 99999 !important;
+    background: rgba(0,0,0,0.85);
+    display: none; align-items: center; justify-content: center;
     backdrop-filter: blur(5px);
   }
   .modal-content {
@@ -211,19 +214,12 @@
     border: none; color: white; padding: 12px; border-radius: 10px;
     font-family: 'Gowun Dodum'; cursor: pointer; font-weight: bold;
   }
-  
-  .modal-overlay {
-    position: fixed !important;
-    top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 99999 !important;
-    background: rgba(0,0,0,0.85);
-  }
 </style>
 </head>
 <body>
 
-<h1>서퍼 플레이어 <span class="help-icon" id="openHelp">ⓘ</span></h1>
-<p class="subtitle">태국 gl 같이 즐기자</p>
+<h1>서퍼 플레이어<span class="help-icon" id="openHelp">ⓘ</span></h1>
+<p class="subtitle">태젤드 덕질</p>
 
 <div class="top-panels">
   <div class="settings-box">
@@ -239,7 +235,7 @@
       </div>
       <div style="display:flex; gap:5px; align-items:center;">
         <span class="hotkey">3</span>
-        <input type="text" id="m3" value="연출 미쳤다..." style="flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:5px;">
+        <input type="text" id="m3" value="미친" style="flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:5px;">
       </div>
       <div style="display:flex; gap:5px; align-items:center;">
         <span class="hotkey">4</span>
@@ -274,9 +270,6 @@
     <input type="range" id="volSlider" min="0" max="100" step="5" value="100" style="width:50px;">
     <span id="timeDisplay" style="font-size:0.75rem; color:var(--muted);">0:00 / 0:00</span>
 
-    <span style="font-size:0.72rem;color:var(--muted);margin-left:10px;">속도</span>
-    <input type="range" id="speedSlider" min="0.5" max="2" step="0.25" value="1" style="width:40px;">
-
     <span style="font-size:0.72rem;color:var(--muted);margin-left:auto;">글자</span>
     <input type="range" id="fontSizeSlider" min="16" max="48" step="2" value="24" style="width:50px;">
     
@@ -301,7 +294,7 @@
   <div class="comment-input-row">
     <input type="text" id="commentText" placeholder="함께 덕질을 해봐요!">
     <div id="colorPicks" style="display:flex; gap:5px;"></div>
-    <button class="send-btn" id="sendBtn">발사 !</button>
+    <button class="send-btn" id="sendBtn">전송 !</button>
   </div>
 
   <div class="type-picks" id="typePicks">
@@ -602,11 +595,6 @@
 
   document.getElementById('volSlider').addEventListener('input', e => player && player.setVolume(e.target.value));
   
-  document.getElementById('speedSlider').addEventListener('input', e => {
-      const rate = parseFloat(e.target.value);
-      if(player) player.setPlaybackRate(rate);
-  });
-
   document.getElementById('playBtn').addEventListener('click', () => {
     if (!player) return;
     if (player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo();
@@ -744,10 +732,10 @@
   <div class="modal-content">
     <h2>🏄‍♀️ 적당 가이드</h2>
     <ul>
-      <li>📺 <b>저작권:</b> 유튜브 공식 영상을 가져와서 댓글만 저장하는 방식이라, 여기서 봐도 <b>조회수랑 수익은 전부 원작자에게</b> 가요! (스밍 인정 👌)</li>
+      <li>📺 <b>저작권:</b> 유튜브 공식 영상을 가져와서 댓글만 저장하는 방식이라, 여기서 봐도 <b>조회수랑 수익은 전부 원작자에게</b>!</li>
       <li>💻 <b>환경 최적화:</b> 이거 그냥 만든 거라 모바일보다 <b>pc에 최적화</b>되어 있어요</li>
       <li>⌨️ <b>단축키:</b><br>
-        - [F] : 전체화면<br>
+        - [F] : 전체화면 <b>(주의: 유튜브 자체 전체화면 말고 이 단축키나 사이트 내 버튼을 써야 전체화면에서 댓글 달기 가능!)</b><br>
         - [Space] : 재생/일시정지<br>
         - [Enter] : 전체화면에서 채팅창 열기/전송<br>
         - [1~4] : 설정된 댓글 즉시 전송
