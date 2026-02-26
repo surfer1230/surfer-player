@@ -1,41 +1,81 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<script src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>서퍼 플레이어</title>
+<title>서퍼 플레이어 V5.2 (Final Fix)</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
 
   :root {
-    --bg: #0a0a0f;
-    --surface: #13131a;
-    --border: #2a2a3a;
-    --accent: #ff4d6d;
-    --accent2: #7c3aed;
-    --text: #e8e8f0;
-    --muted: #5a5a7a;
+    /* 🌅 Thai GL Sunset Theme */
+    --bg: #120F15;
+    --surface: #1E1B24;
+    --border: #54363D;
+    --accent: #FF8C42;
+    --accent2: #00A8A8;
+    --text: #F8EED0;
+    --muted: #A08C95;
+    --gradient: linear-gradient(135deg, var(--accent), #FF5E62);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', sans-serif;
-    min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px 10px;
-    transition: background 0.3s;
+    background-color: var(--bg); 
+    /* 오로라 그라데이션 */
+    background-image: 
+      radial-gradient(circle at 10% 20%, rgba(255, 140, 66, 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(0, 168, 168, 0.15) 0%, transparent 40%);
+    background-attachment: fixed;
+    color: var(--text); 
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    padding: 20px 10px;
   }
 
-  h1 { font-family: 'Gowun Dodum', sans-serif; font-size: 2rem; letter-spacing: 0.05em; margin-bottom: 6px; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  /* 필름 노이즈 텍스처 */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0; 
+    opacity: 0.15; 
+    background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+    filter: contrast(120%) brightness(100%);
+  }
+
+  /* UI 요소들 앞으로 꺼내기 */
+  h1, .subtitle, .top-panels, .room-selector, .player-wrap, .controls, .comment-panel, #helpModal {
+    position: relative;
+    z-index: 10;
+  }
+
+  h1 { 
+    font-family: 'Gowun Dodum', sans-serif; 
+    font-size: 2rem; 
+    letter-spacing: 0.05em; 
+    margin-bottom: 6px; 
+    background: var(--gradient); 
+    -webkit-background-clip: text; 
+    -webkit-text-fill-color: transparent; 
+  }
   .subtitle { color: var(--muted); font-size: 0.8rem; margin-bottom: 20px; }
 
   .top-panels { width: 100%; max-width: 860px; display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
   .settings-box { flex: 1; min-width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; }
-  .settings-box h3 {font-family: 'Gowun Dodum', sans-serif; font-size: 1rem; color: var(--accent2); margin-bottom: 10px; }
+  .settings-box h3 {font-family: 'Gowun Dodum', sans-serif; font-size: 1rem; color: var(--accent); margin-bottom: 10px; }
   
   .macro-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
   
   .hotkey {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
     border: 1px solid var(--border);
     border-radius: 4px;
     padding: 2px 6px;
@@ -47,54 +87,92 @@
   }
 
   .room-selector { width: 100%; max-width: 860px; background: var(--surface); border: 1px solid var(--accent2); border-radius: 12px; padding: 12px 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-  .room-selector label { font-family: 'Gowun Dodum', sans-serif; font-size: 1.1rem; color: var(--accent2); white-space: nowrap; }
+  .room-selector label { font-family: 'Gowun Dodum', sans-serif; font-size: 1.1rem; color: var(--accent); white-space: nowrap; }
   .room-selector select { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; cursor: pointer; max-width: 100%; }
 
-  .player-wrap { position: relative; width: 100%; max-width: 860px; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); outline: none; }
-  .player-wrap:fullscreen { max-width: 100%; width: 100vw; height: 100vh; border: none; border-radius: 0; }
+  .player-wrap { 
+    position: relative; width: 100%; max-width: 860px; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; 
+    border: 2px solid var(--border); 
+    box-shadow: 0 0 20px rgba(0, 168, 168, 0.15);
+    outline: none; 
+  }
+  .player-wrap:fullscreen { max-width: 100%; width: 100vw; height: 100vh; border: none; border-radius: 0; box-shadow: none; }
   
   #youtubePlayer { width: 100%; height: 100%; pointer-events: auto; }
   #danmakuOverlay { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 10; }
+  
+  /* 시네마틱 자막 */
   #subtitleDisplay {
-    position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%);
-    text-align: center; width: 90%; pointer-events: none; z-index: 20;
-    color: white; font-size: 1.3rem; font-family: 'Noto Sans KR', sans-serif;
-    text-shadow: 2px 2px 2px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.8);
-    background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 8px; display: none;
+    position: absolute;
+    bottom: 30px; 
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    width: auto;
+    max-width: 90%;
+    pointer-events: none;
+    z-index: 20;
+    color: #fff;
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 1.1rem;
+    line-height: 1.4;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(2px);
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: none;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    display: none;
+    transition: opacity 0.2s;
   }
+  
   #fsInputWrapper {
     position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 70%;
-    background: rgba(0, 0, 0, 0.7); border: 2px solid var(--accent2); border-radius: 30px; padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.7); border: 2px solid var(--accent); border-radius: 30px; padding: 10px 20px;
     z-index: 9999; display: none; text-align: center;
   }
   #fsInput { width: 100%; background: transparent; border: none; color: white; font-size: 1.1rem; outline: none; text-align: center; }
 
   .controls { width: 100%; max-width: 860px; background: var(--surface); border: 1px solid var(--border); border-radius: 0 0 12px 12px; padding: 12px 15px; display: flex; flex-direction: column; gap: 10px; }
   .progress-wrap { position: relative; height: 4px; background: var(--border); border-radius: 2px; cursor: pointer; }
-  #progressBar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; pointer-events: none; }
-  .progress-marker { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); pointer-events: none; }
+  #progressBar { height: 100%; width: 0%; background: var(--gradient); border-radius: 2px; pointer-events: none; }
+  .progress-marker { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.7); pointer-events: none; }
 
   .ctrl-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  button.ctrl-btn { background: none; border: none; color: var(--text); cursor: pointer; padding: 5px; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 6px; min-width: 30px;}
-  button.ctrl-btn:hover { background: var(--border); }
+  
+  button.ctrl-btn { 
+    background: none; border: none; color: var(--text); cursor: pointer; 
+    padding: 5px; font-size: 1.5rem; /* 아이콘 크기 적당하게 */
+    border: 1px solid var(--border); border-radius: 6px; min-width: 36px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  button.ctrl-btn:hover { background: var(--border); color: var(--accent); }
+  
   .toggle-btn { margin-left: auto; padding: 5px 10px; border-radius: 20px; font-size: 0.7rem; border: 1px solid var(--border); cursor: pointer; background: none; color: var(--muted); }
-  .toggle-btn.on { border-color: var(--accent2); color: var(--accent2); background: rgba(124,58,237,0.1); }
+  .toggle-btn.on { border-color: var(--accent); color: var(--accent); background: rgba(255, 140, 66, 0.1); }
 
   .comment-panel { width: 100%; max-width: 860px; margin-top: 15px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; }
   .comment-panel h2 { font-family: 'Gowun Dodum', sans-serif; font-size: 1.1rem; color: var(--muted); margin-bottom: 12px; }
   
-  .type-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); padding: 5px 10px; font-size: 0.75rem; cursor: pointer; transition: all 0.15s; }
-  .type-btn.selected, .type-btn:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(124,58,237,0.08); }
+  .type-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); padding: 5px 10px; font-size: 0.85rem; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 4px; }
+  .type-btn.selected, .type-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(255, 140, 66, 0.1); }
   .type-picks { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
 
   .comment-input-row { display: flex; gap: 8px; margin-bottom: 10px; }
   #commentText { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 9px 12px; outline: none; }
   .color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
-  .color-dot.selected { border-color: #fff; }
-  .send-btn { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 8px; color: #fff; padding: 9px 15px; font-family: 'Gowun Dodum', sans-serif; cursor: pointer; white-space: nowrap; }
+  .color-dot.selected { border-color: #fff; transform: scale(1.2); }
+  .send-btn { 
+    background: var(--gradient); 
+    border: none; border-radius: 8px; color: #fff; padding: 9px 15px; 
+    font-family: 'Gowun Dodum', sans-serif; cursor: pointer; white-space: nowrap; 
+    box-shadow: 0 4px 15px rgba(255, 140, 66, 0.3);
+  }
+  .send-btn:hover { transform: translateY(-2px); }
 
   .comment-list { margin-top: 16px; max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-  .comment-item { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; background: var(--bg); cursor: pointer; }
+  .comment-item { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; background: var(--bg); cursor: pointer; border: 1px solid transparent; }
+  .comment-item:hover { border-color: var(--border); }
   .comment-del { margin-left: auto; color: var(--muted); background: none; border: none; cursor: pointer; padding: 2px 5px; }
   .comment-del:hover { color: var(--accent); }
 
@@ -118,14 +196,14 @@
     backdrop-filter: blur(5px);
   }
   .modal-content {
-    background: var(--surface); border: 1px solid var(--accent2);
+    background: var(--surface); border: 1px solid var(--accent);
     width: 90%; max-width: 500px; padding: 25px; border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative;
   }
   .modal-content h2 { font-family: 'Gowun Dodum'; color: var(--accent); margin-bottom: 15px; }
   .modal-content ul { list-style: none; margin-bottom: 20px; }
   .modal-content li { margin-bottom: 10px; font-size: 0.9rem; line-height: 1.5; color: var(--text); }
-  .modal-content b { color: var(--accent2); }
+  .modal-content b { color: var(--accent); }
   
   .help-icon { 
     cursor: pointer; font-size: 1.2rem; color: var(--muted); vertical-align: middle; margin-left: 8px; 
@@ -134,7 +212,7 @@
   .help-icon:hover { color: var(--accent); transform: scale(1.1); }
 
   .close-modal-btn {
-    width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2));
+    width: 100%; background: var(--gradient);
     border: none; color: white; padding: 12px; border-radius: 10px;
     font-family: 'Gowun Dodum'; cursor: pointer; font-weight: bold;
   }
@@ -147,33 +225,26 @@
 
 <div class="top-panels">
   <div class="settings-box">
-    <h3>🎨 테마 꾸미기</h3>
-    <div style="display:flex; gap:10px; align-items:center; font-size:0.85rem;">
-      <label>배경 <input type="color" id="themeBg" value="#0a0a0f"></label>
-      <label>포인트 <input type="color" id="themeAccent" value="#ff4d6d"></label>
+    <h3>⚡ 댓글 단축키 (커스텀)</h3>
+    <div class="macro-grid" style="grid-template-columns: 1fr; gap: 8px;">
+      <div style="display:flex; gap:5px; align-items:center;">
+        <span class="hotkey">1</span>
+        <input type="text" id="m1" value="ㅋㅋㅋㅋㅋㅋㅋ" style="flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:5px;">
+      </div>
+      <div style="display:flex; gap:5px; align-items:center;">
+        <span class="hotkey">2</span>
+        <input type="text" id="m2" value="ㅠㅠㅠㅠㅠㅠㅠ" style="flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:5px;">
+      </div>
+      <div style="display:flex; gap:5px; align-items:center;">
+        <span class="hotkey">3</span>
+        <input type="text" id="m3" value="연출 미쳤다..." style="flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:5px;">
+      </div>
+      <div style="display:flex; gap:5px; align-items:center;">
+        <span class="hotkey">4</span>
+        <input type="text" id="m4" value="?" style="flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:5px;">
+      </div>
     </div>
   </div>
-<div class="settings-box">
-  <h3>⚡ 댓글 단축키 (커스텀)</h3>
-  <div class="macro-grid" style="grid-template-columns: 1fr; gap: 8px;">
-    <div style="display:flex; gap:5px; align-items:center;">
-      <span class="hotkey">1</span>
-      <input type="text" id="m1" value="ㅋㅋㅋㅋㅋㅋㅋ" style="flex:1; background:var(--bg); border:1px solid var(--border); color:white; padding:6px; border-radius:5px;">
-    </div>
-    <div style="display:flex; gap:5px; align-items:center;">
-      <span class="hotkey">2</span>
-      <input type="text" id="m2" value="ㅠㅠㅠㅠㅠㅠㅠ" style="flex:1; background:var(--bg); border:1px solid var(--border); color:white; padding:6px; border-radius:5px;">
-    </div>
-    <div style="display:flex; gap:5px; align-items:center;">
-      <span class="hotkey">3</span>
-      <input type="text" id="m3" value="연출 미쳤다..." style="flex:1; background:var(--bg); border:1px solid var(--border); color:white; padding:6px; border-radius:5px;">
-    </div>
-    <div style="display:flex; gap:5px; align-items:center;">
-      <span class="hotkey">4</span>
-      <input type="text" id="m4" value="?" style="flex:1; background:var(--bg); border:1px solid var(--border); color:white; padding:6px; border-radius:5px;">
-    </div>
-  </div>
-</div>
 </div>
 
 <div class="room-selector">
@@ -195,7 +266,8 @@
 <div class="controls">
   <div class="progress-wrap" id="progressWrap"><div id="progressBar"></div></div>
   <div class="ctrl-row">
-    <button class="ctrl-btn" id="playBtn">▶</button>
+    <button class="ctrl-btn" id="playBtn"><i class="ph ph-fill ph-play"></i></button>
+    
     <span style="font-size:0.72rem;color:var(--muted);">소리</span>
     <input type="range" id="volSlider" min="0" max="100" step="5" value="100" style="width:50px;">
     <span id="timeDisplay" style="font-size:0.75rem; color:var(--muted);">0:00 / 0:00</span>
@@ -206,7 +278,9 @@
     <span style="font-size:0.72rem;color:var(--muted);margin-left:auto;">글자</span>
     <input type="range" id="fontSizeSlider" min="16" max="48" step="2" value="24" style="width:50px;">
     
-    <button class="ctrl-btn" id="fullscreenBtn" style="display:flex; align-items:center; gap:5px;">⛶ 전체화면</button>
+    <button class="ctrl-btn" id="fullscreenBtn" style="gap:5px; font-size:0.8rem;">
+      <i class="ph ph-bold ph-arrows-out-simple"></i> 전체화면
+    </button>
     <button class="toggle-btn on" id="danmakuToggle">댓글 ON</button>
   </div>
 </div>
@@ -215,8 +289,10 @@
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
     <h2 style="margin-bottom:0;">실시간 채팅</h2>
     <div style="display:flex;gap:8px;align-items:center;">
-      <span id="saveStatus" style="font-size:0.72rem;color:var(--accent2);font-weight:bold;"></span>
-      <button class="type-btn" id="exportBtn">📤 백업</button>
+      <span id="saveStatus" style="font-size:0.72rem;color:var(--accent);font-weight:bold;"></span>
+      <button class="type-btn" id="exportBtn">
+        <i class="ph-bold ph-download-simple"></i> 저장
+      </button>
     </div>
   </div>
 
@@ -294,13 +370,18 @@
     });
   };
 
+  // 🛠️ JS 아이콘 변경 로직 (수정됨)
   function onPlayerStateChange(event) {
+    const btn = document.getElementById('playBtn');
+    
     if (event.data === YT.PlayerState.PLAYING) {
       startDanmakuLoop();
-      document.getElementById('playBtn').textContent = '⏸';
+      // 일시정지 아이콘
+      btn.innerHTML = '<i class="ph ph-fill ph-pause"></i>'; 
     } else {
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
-      document.getElementById('playBtn').textContent = '▶';
+      // 재생 아이콘
+      btn.innerHTML = '<i class="ph-fill ph-play"></i>';
     }
   }
 
@@ -330,7 +411,7 @@
       comments.sort((a, b) => a.time - b.time);
       renderList();
       updateMarkers();
-      if (player && player.getPlayerState() === 1) {
+      if (player && player.getPlayerState && player.getPlayerState() === 1) {
         const now = player.getCurrentTime();
         if (Math.abs(data.time - now) < 2) {
            spawnDanmaku(data);
@@ -604,7 +685,7 @@
             hotkeySpan.style.background = 'var(--accent)';
             hotkeySpan.style.color = 'white';
             setTimeout(() => {
-                hotkeySpan.style.background = 'rgba(255,255,255,0.1)';
+                hotkeySpan.style.background = 'rgba(255,255,255,0.05)';
                 hotkeySpan.style.color = 'var(--accent)';
             }, 150);
         }
@@ -617,14 +698,6 @@
       e.preventDefault();
       document.getElementById('sendBtn').click();
     }
-  });
-
-  document.getElementById('themeBg').addEventListener('input', (e) => {
-    document.documentElement.style.setProperty('--bg', e.target.value);
-  });
-  document.getElementById('themeAccent').addEventListener('input', (e) => {
-    document.documentElement.style.setProperty('--accent', e.target.value);
-    document.documentElement.style.setProperty('--accent2', e.target.value);
   });
 
   const COLORS = ['#ffffff', '#ff4d6d', '#ffd166', '#06d6a0', '#a78bfa'];
