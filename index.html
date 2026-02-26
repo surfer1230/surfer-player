@@ -49,7 +49,7 @@
     filter: contrast(120%) brightness(100%);
   }
 
-  h1, .subtitle, .top-panels, .room-selector, .player-wrap, .controls, .comment-panel, #helpModal {
+  h1, .subtitle, .app-container, #helpModal {
     position: relative;
     z-index: 10;
   }
@@ -65,11 +65,82 @@
   }
   .subtitle { color: var(--muted); font-size: 0.8rem; margin-bottom: 20px; }
 
-  .top-panels { width: 100%; max-width: 860px; display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-  .settings-box { flex: 1; min-width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; }
-  .settings-box h3 {font-family: 'Gowun Dodum', sans-serif; font-size: 1rem; color: var(--accent); margin-bottom: 10px; }
+  /* 새롭게 추가된 좌우 분할 레이아웃 컨테이너 */
+  .app-container {
+    display: flex;
+    width: 100%;
+    max-width: 1150px;
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+  /* 왼쪽 사이드바 CSS */
+  .sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 15px;
+    position: sticky;
+    top: 20px;
+  }
   
-  .macro-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+  .sidebar h2 {
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 1.1rem;
+    color: var(--accent);
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+  }
+
+  .sidebar h2 i {
+    margin-right: 6px;
+    font-size: 1.2rem;
+  }
+
+  .video-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .room-btn {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px;
+    border-radius: 8px;
+    text-align: left;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+
+  .room-btn:hover {
+    border-color: var(--accent);
+    background: rgba(255, 140, 66, 0.1);
+  }
+
+  /* 오른쪽 메인 콘텐츠 영역 CSS */
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 860px;
+  }
+
+  .top-panels { width: 100%; display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+  .settings-box { flex: 1; min-width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; }
+  .settings-box h3 {font-family: 'Gowun Dodum', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--accent); margin-bottom: 10px; display: flex; align-items: center;}
+  .settings-box h3 i { font-size: 1.2rem; margin-right: 6px; }
+  
+  .macro-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
   
   .hotkey {
     background: rgba(255,255,255,0.05);
@@ -83,12 +154,8 @@
     box-shadow: 0 2px 0 var(--border);
   }
 
-  .room-selector { width: 100%; max-width: 860px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-  .room-selector label { font-family: 'Gowun Dodum', sans-serif; font-size: 1.1rem; color: var(--accent); white-space: nowrap; }
-  .room-selector select { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 8px; cursor: pointer; max-width: 100%; }
-
   .player-wrap { 
-    position: relative; width: 100%; max-width: 860px; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; 
+    position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; 
     border: 2px solid var(--border); 
     box-shadow: 0 0 20px rgba(0, 168, 168, 0.15);
     outline: none; 
@@ -129,7 +196,7 @@
   }
   #fsInput { width: 100%; background: transparent; border: none; color: white; font-size: 1.1rem; outline: none; text-align: center; }
 
-  .controls { width: 100%; max-width: 860px; background: var(--surface); border: 1px solid var(--border); border-radius: 0 0 12px 12px; padding: 12px 15px; display: flex; flex-direction: column; gap: 10px; }
+  .controls { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 0 0 12px 12px; padding: 12px 15px; display: flex; flex-direction: column; gap: 10px; }
   .progress-wrap { position: relative; height: 4px; background: var(--border); border-radius: 2px; cursor: pointer; }
   #progressBar { height: 100%; width: 0%; background: var(--gradient); border-radius: 2px; pointer-events: none; }
   .progress-marker { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.7); pointer-events: none; }
@@ -147,7 +214,7 @@
   .toggle-btn { padding: 5px 10px; border-radius: 20px; font-size: 0.7rem; border: 1px solid var(--border); cursor: pointer; background: none; color: var(--muted); }
   .toggle-btn.on { border-color: var(--accent); color: var(--accent); background: rgba(255, 140, 66, 0.1); }
 
-  .comment-panel { width: 100%; max-width: 860px; margin-top: 15px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; }
+  .comment-panel { width: 100%; margin-top: 15px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; }
   .comment-panel h2 { font-family: 'Gowun Dodum', sans-serif; font-size: 1.1rem; color: var(--muted); margin-bottom: 12px; }
   
   .type-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); padding: 5px 10px; font-size: 0.85rem; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 4px; }
@@ -179,9 +246,12 @@
   @keyframes flyLeft { from { transform: translateX(0); } to { transform: translateX(calc(-100vw - 100%)); } }
   @keyframes fadeInOut { 0% { opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { opacity: 0; } }
 
-  @media (max-width: 600px) {
+  /* 반응형: 화면이 작아지면 다시 위아래로 쌓이게 */
+  @media (max-width: 900px) {
+    .app-container { flex-direction: column; align-items: center; }
+    .sidebar { width: 100%; max-width: 860px; position: static; }
+    .main-content { max-width: 100%; }
     h1 { font-size: 1.5rem; }
-    .top-panels { flex-direction: column; }
     .controls { padding: 10px; }
     #subtitleDisplay { font-size: 1rem; width: 95%; }
   }
@@ -216,88 +286,91 @@
     font-family: 'Gowun Dodum'; cursor: pointer; font-weight: bold;
   }
 
-  ::-webkit-scrollbar {
-    width: 8px;  
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent; 
-  }
-  ::-webkit-scrollbar-thumb {
-    background: var(--border); 
-    border-radius: 4px;        
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--accent); 
-  }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
   
-  button:active, .type-btn:active, .color-dot:active, select:active {
-    transform: scale(0.95); 
-    transition: transform 0.05s; 
-  }
-  
-  .room-selector select {
-    appearance: none;  
-    -webkit-appearance: none; 
-    
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF8C42' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
-    
-    padding-right: 40px; 
-    font-family: 'Gowun Dodum', sans-serif; 
-    font-weight: bold;
-    transition: all 0.2s;
-  }
-  
-  .room-selector select:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-color: var(--accent);
-  }
-  
-  .room-selector select:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 10px rgba(255, 140, 66, 0.3);
-  }
-
-  .room-selector option {
-    background-color: var(--surface); 
-    color: var(--text);               
+  button:active, .type-btn:active, .color-dot:active {
+    transform: scale(0.95); transition: transform 0.05s; 
   }
   
   @keyframes fadeIn {
-    from { 
-      opacity: 0; 
-      transform: translateY(10px); 
-    } 
-    to { 
-      opacity: 1; 
-      transform: translateY(0);   
-    }
+    from { opacity: 0; transform: translateY(10px); } 
+    to { opacity: 1; transform: translateY(0); }
   }
 
-  body {
-    animation: fadeIn 0.8s ease-out; 
-  }
+  body { animation: fadeIn 0.8s ease-out; }
 
-  .settings-box h3, .room-selector label {
-    font-size: 1.1rem !important;  
-    font-weight: 700 !important;   
-    display: flex;                 
-    align-items: center;
-  }
-  
-  .settings-box h3 i, .room-selector label i {
-    font-size: 1.2rem;
-    margin-right: 6px;
-  }
- 
   .player-wrap:fullscreen #subtitleDisplay {
     bottom: 100px !important;  
     font-size: 2rem !important;  
     padding: 10px 20px;        
     max-width: 80%;            
+  }
+
+  .sidebar details {
+    margin-bottom: 5px;
+  }
+  
+  .sidebar summary {
+    list-style: none; 
+    cursor: pointer;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-weight: 700;
+    color: var(--text);
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    user-select: none; 
+  }
+
+  .sidebar summary::-webkit-details-marker {
+    display: none; 
+  }
+
+  .sidebar summary:hover {
+    background: rgba(255, 140, 66, 0.1);
+    color: var(--accent);
+  }
+
+  .sidebar details[open] > summary {
+    color: var(--accent);
+  }
+
+  .folder-medium {
+    margin-left: 15px; 
+    margin-top: 5px;
+  }
+  .folder-medium summary {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+    color: var(--muted);
+  }
+
+  .folder-content {
+    margin-left: 20px;
+    padding-left: 10px;
+    border-left: 1px dashed var(--border); 
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+    margin-bottom: 8px;
+  }
+
+  .folder-content .room-btn {
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+  }
+  .folder-content .room-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
   }
 
 </style>
@@ -307,97 +380,133 @@
 <h1>서퍼<span class="help-icon" id="openHelp">ⓘ</span></h1>
 <p class="subtitle">태젤드 덕질</p>
 
-<div class="top-panels">
-  <div class="settings-box">
-    <h3><i class="ph-fill ph-lightning" style="margin-right:4px;"></i> 댓글 단축키</h3>
-    <div class="macro-grid" style="grid-template-columns: 1fr; gap: 8px;">
-      <div style="display:flex; gap:5px; align-items:center;">
-        <span class="hotkey">1</span>
-        <input type="text" id="m1" value="ㅋㅋㅋㅋㅋㅋㅋ" style="flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:5px;">
-      </div>
-      <div style="display:flex; gap:5px; align-items:center;">
-        <span class="hotkey">2</span>
-        <input type="text" id="m2" value="ㅠㅠㅠㅠㅠㅠㅠ" style="flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:5px;">
-      </div>
-      <div style="display:flex; gap:5px; align-items:center;">
-        <span class="hotkey">3</span>
-        <input type="text" id="m3" value="미친" style="flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:5px;">
-      </div>
-      <div style="display:flex; gap:5px; align-items:center;">
-        <span class="hotkey">4</span>
-        <input type="text" id="m4" value="?" style="flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:5px;">
+<div class="app-container">
+
+  <aside class="sidebar">
+    <h2><i class="ph-fill ph-list-dashes"></i> 카테고리</h2>
+    <div class="video-list">
+
+      <details class="folder-large">
+        <summary><i class="ph-fill ph-folder" style="margin-right:6px;"></i> 리나미우</summary>
+        
+        <details class="folder-medium">
+          <summary><i class="ph-fill ph-folder-open" style="margin-right:6px;"></i> 마이세이프존 리액션</summary>
+          <div class="folder-content">
+            <button class="room-btn" onclick="changeRoom('XheupD-6iK4')">
+              <i class="ph-fill ph-play-circle" style="margin-right:4px;"></i> 리액션 EP.1
+            </button>
+            <button class="room-btn" onclick="changeRoom('gHnb-UEKhQ8')">
+              <i class="ph-fill ph-play-circle" style="margin-right:4px;"></i> 리액션 EP.2
+            </button>
+          </div>
+        </details>
+
+        <details class="folder-medium">
+          <summary><i class="ph-fill ph-folder-open" style="margin-right:6px;"></i> 자컨</summary>
+          <div class="folder-content">
+            <button class="room-btn" onclick="changeRoom('cA_IY57a3d4')">
+              <i class="ph-fill ph-play-circle" style="margin-right:4px;"></i> 모두 좋다고 하네
+            </button>
+          </div>
+        </details>
+      </details>
+
+      <details class="folder-large">
+        <summary><i class="ph-fill ph-folder" style="margin-right:6px;"></i> 걸룰즈</summary>
+        <div class="folder-content">
+          <button class="room-btn" onclick="changeRoom('lDUD3omAlHA')">
+            <i class="ph-fill ph-play-circle" style="margin-right:4px;"></i> 공식 예고편
+          </button>
+        </div>
+      </details>
+
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="top-panels">
+      <div class="settings-box">
+        <h3><i class="ph-fill ph-lightning"></i> 댓글 단축키</h3>
+        <div class="macro-grid">
+          <div style="display:flex; gap:5px; align-items:center;">
+            <span class="hotkey">1</span>
+            <input type="text" id="m1" value="ㅋㅋㅋㅋㅋㅋㅋ" style="flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:5px;">
+          </div>
+          <div style="display:flex; gap:5px; align-items:center;">
+            <span class="hotkey">2</span>
+            <input type="text" id="m2" value="ㅠㅠㅠㅠㅠㅠㅠ" style="flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:5px;">
+          </div>
+          <div style="display:flex; gap:5px; align-items:center;">
+            <span class="hotkey">3</span>
+            <input type="text" id="m3" value="미친" style="flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:5px;">
+          </div>
+          <div style="display:flex; gap:5px; align-items:center;">
+            <span class="hotkey">4</span>
+            <input type="text" id="m4" value="?" style="flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px; border-radius:5px;">
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
-<div class="room-selector">
-  <label for="videoSelect"><i class="ph-fill ph-monitor-play" style="margin-right:4px;"></i> 방 선택:</label>
-  <select id="videoSelect">
-    <option value="lDUD3omAlHA">걸룰즈 예고편</option>
-    <option value="dObc3WRi6TU">플루토 EP 1-1</option>
-    <option value="0X5D_PJ8R7E">하모니 시크릿 1</option>
-  </select>
-</div>
-
-<div class="player-wrap" id="playerWrap" tabindex="0">
-  <div id="youtubePlayer"></div>
-  <div id="danmakuOverlay"></div>
-  <div id="subtitleDisplay"></div>
-  <div id="fsInputWrapper"><input type="text" id="fsInput" placeholder="엔터치고 댓글 등록!"></div>
-</div>
-
-<div class="controls">
-  <div class="progress-wrap" id="progressWrap"><div id="progressBar"></div></div>
-  <div class="ctrl-row">
-    <button class="ctrl-btn" id="playBtn"><i class="ph ph-fill ph-play"></i></button>
-    
-    <span id="timeDisplay" style="font-size:0.75rem; color:var(--muted);">0:00 / 0:00</span>
-
-    <span style="font-size:0.72rem;color:var(--muted);margin-left:auto;">글자</span>
-    <input type="range" id="fontSizeSlider" min="16" max="48" step="2" value="24" style="width:50px;">
-    
-    <button class="toggle-btn on" id="danmakuToggle">댓글 ON</button>
-
-    <button class="ctrl-btn" id="fullscreenBtn" style="gap:5px; font-size:0.8rem; margin-left:8px;">
-      <i class="ph ph-bold ph-arrows-out-simple"></i> 전체화면</button>
-  </div>
-</div>
-
-<div class="comment-panel">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-    <h2 style="margin-bottom:0;">실시간 채팅</h2>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <span id="saveStatus" style="font-size:0.72rem;color:var(--accent);font-weight:bold;"></span>
-      <button class="type-btn" id="exportBtn">
-        <i class="ph-bold ph-download-simple"></i> 저장
-      </button>
+    <div class="player-wrap" id="playerWrap" tabindex="0">
+      <div id="youtubePlayer"></div>
+      <div id="danmakuOverlay"></div>
+      <div id="subtitleDisplay"></div>
+      <div id="fsInputWrapper"><input type="text" id="fsInput" placeholder="엔터치고 댓글 등록!"></div>
     </div>
+
+    <div class="controls">
+      <div class="progress-wrap" id="progressWrap"><div id="progressBar"></div></div>
+      <div class="ctrl-row">
+        <button class="ctrl-btn" id="playBtn"><i class="ph ph-fill ph-play"></i></button>
+        
+        <span id="timeDisplay" style="font-size:0.75rem; color:var(--muted);">0:00 / 0:00</span>
+
+        <span style="font-size:0.72rem;color:var(--muted);margin-left:auto;">글자</span>
+        <input type="range" id="fontSizeSlider" min="16" max="48" step="2" value="24" style="width:50px;">
+        
+        <button class="toggle-btn on" id="danmakuToggle">댓글 ON</button>
+
+        <button class="ctrl-btn" id="fullscreenBtn" style="gap:5px; font-size:0.8rem; margin-left:8px;">
+          <i class="ph ph-bold ph-arrows-out-simple"></i> 전체화면</button>
+      </div>
+    </div>
+
+    <div class="comment-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <h2 style="margin-bottom:0;">실시간 채팅</h2>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span id="saveStatus" style="font-size:0.72rem;color:var(--accent);font-weight:bold;"></span>
+          <button class="type-btn" id="exportBtn">
+            <i class="ph-bold ph-download-simple"></i> 저장
+          </button>
+        </div>
+      </div>
+
+      <div class="comment-input-row">
+        <input type="text" id="commentText" placeholder="함께 덕질을 해봐요!">
+        <div id="colorPicks" style="display:flex; gap:5px;"></div>
+        <button class="send-btn" id="sendBtn">전송 !</button>
+      </div>
+
+      <div class="type-picks" id="typePicks">
+        <button class="type-btn selected" data-type="flow">흐름</button>
+        <button class="type-btn" data-type="top">상단</button>
+        <button class="type-btn" data-type="bottom">하단</button>
+      </div>
+
+      <div class="comment-list" id="commentList"></div>
+
+      <div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+        <label class="type-btn" style="cursor:pointer;">
+          📄 자막 (SRT/VTT)
+          <input type="file" id="subFileInput" accept=".srt,.vtt" style="display:none;">
+        </label>
+        <span id="subStatus" style="font-size:0.78rem;color:var(--muted);"></span>
+      </div>
+    </div>
+  </main>
   </div>
-
-  <div class="comment-input-row">
-    <input type="text" id="commentText" placeholder="함께 덕질을 해봐요!">
-    <div id="colorPicks" style="display:flex; gap:5px;"></div>
-    <button class="send-btn" id="sendBtn">전송 !</button>
-  </div>
-
-  <div class="type-picks" id="typePicks">
-    <button class="type-btn selected" data-type="flow">흐름</button>
-    <button class="type-btn" data-type="top">상단</button>
-    <button class="type-btn" data-type="bottom">하단</button>
-  </div>
-
-  <div class="comment-list" id="commentList"></div>
-
-  <div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
-    <label class="type-btn" style="cursor:pointer;">
-      📄 자막 (SRT/VTT)
-      <input type="file" id="subFileInput" accept=".srt,.vtt" style="display:none;">
-    </label>
-    <span id="subStatus" style="font-size:0.78rem;color:var(--muted);"></span>
-  </div>
-</div>
-
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getDatabase, ref, push, onChildAdded, onChildRemoved, remove, query, orderByChild, off } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
@@ -430,7 +539,10 @@
   let subtitles = [];
   let shown = new Set();
   let danmakuOn = true;
-  let currentVideoKey = document.getElementById('videoSelect').value;
+  
+  // 기본 첫 영상 세팅
+  let currentVideoKey = 'XheupD-6iK4';
+  
   let animationFrameId = null;
   let unsubscribeAdded = null;
   let unsubscribeRemoved = null;
@@ -463,9 +575,14 @@
 
   let dbRef = ref(db, 'comments/' + currentVideoKey);
 
-  document.getElementById('videoSelect').addEventListener('change', (e) => {
-    currentVideoKey = e.target.value;
-    player.loadVideoById(currentVideoKey);
+  // 방 이동 기능 (전역 함수로 등록)
+  window.changeRoom = function(videoId) {
+    currentVideoKey = videoId;
+    
+    if (player && player.loadVideoById) {
+      player.loadVideoById(currentVideoKey);
+    }
+    
     comments = [];
     shown.clear();
     document.getElementById('commentList').innerHTML = '';
@@ -474,7 +591,7 @@
     
     dbRef = ref(db, 'comments/' + currentVideoKey);
     connectDB(); 
-  });
+  };
 
   function connectDB() {
     if (unsubscribeAdded) unsubscribeAdded();
