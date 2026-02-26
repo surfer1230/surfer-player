@@ -344,8 +344,6 @@
   <div class="ctrl-row">
     <button class="ctrl-btn" id="playBtn"><i class="ph ph-fill ph-play"></i></button>
     
-    <span style="font-size:0.72rem;color:var(--muted);">음량</span>
-    <input type="range" id="volSlider" min="0" max="100" step="5" value="100" style="width:50px;">
     <span id="timeDisplay" style="font-size:0.75rem; color:var(--muted);">0:00 / 0:00</span>
 
     <span style="font-size:0.72rem;color:var(--muted);margin-left:auto;">글자</span>
@@ -670,8 +668,6 @@
   function escHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function timeToSec(str) { const p = str.replace(',', '.').split(':'); return (parseFloat(p[0]) * 3600) + (parseFloat(p[1]) * 60) + parseFloat(p[2]); }
   function fmtTime(s) { if (isNaN(s)) return '0:00'; const m = Math.floor(s / 60); const sec = Math.floor(s % 60).toString().padStart(2, '0'); return `${m}:${sec}`; }
-
-  document.getElementById('volSlider').addEventListener('input', e => player && player.setVolume(e.target.value));
   
   document.getElementById('playBtn').addEventListener('click', () => {
     if (!player) return;
