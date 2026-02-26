@@ -84,6 +84,9 @@
     padding: 15px;
     position: sticky;
     top: 20px;
+    max-height: calc(100vh - 40px); 
+    display: flex;
+    flex-direction: column;
   }
   
   .sidebar h2 {
@@ -95,6 +98,7 @@
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
+    flex-shrink: 0;
   }
 
   .sidebar h2 i {
@@ -106,6 +110,8 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    overflow-y: auto;
+    padding-right: 5px;
   }
 
   .room-btn {
@@ -373,6 +379,17 @@
     background: rgba(255, 255, 255, 0.05);
   }
 
+  .room-btn.active {
+    background: rgba(255, 140, 66, 0.15); 
+    color: var(--accent); 
+    border-color: var(--accent); 
+    font-weight: 700;
+  }
+  
+  .room-btn.active i {
+    color: var(--accent);
+  }
+
 </style>
 </head>
 <body>
@@ -575,10 +592,17 @@
 
   let dbRef = ref(db, 'comments/' + currentVideoKey);
 
-  // 방 이동 기능 (전역 함수로 등록)
   window.changeRoom = function(videoId) {
     currentVideoKey = videoId;
     
+    document.querySelectorAll('.room-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    
+    const activeBtn = Array.from(document.querySelectorAll('.room-btn')).find(btn => 
+      btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(videoId)
+    );
+    if(activeBtn) activeBtn.classList.add('active');
     if (player && player.loadVideoById) {
       player.loadVideoById(currentVideoKey);
     }
@@ -683,6 +707,7 @@
       };
       list.appendChild(item);
     });
+    list.scrollTop = list.scrollHeight;
   }
 
   function updateMarkers() {
@@ -930,7 +955,8 @@
   document.getElementById('openHelp').onclick = () => modal.style.display = 'flex';
   document.getElementById('closeHelp').onclick = () => modal.style.display = 'none';
   modal.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
-  
+  setTimeout(() => changeRoom(currentVideoKey), 100);
+
 </script>
 
 <div class="modal-overlay" id="helpModal">
