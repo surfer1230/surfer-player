@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<script src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web"></script>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>서퍼 플레이어 V5.2 (Final Fix)</title>
+<title>서퍼 플레이어</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
 
   :root {
-    /* 🌅 Thai GL Sunset Theme */
     --bg: #120F15;
     --surface: #1E1B24;
     --border: #54363D;
@@ -25,7 +24,6 @@
 
   body {
     background-color: var(--bg); 
-    /* 오로라 그라데이션 */
     background-image: 
       radial-gradient(circle at 10% 20%, rgba(255, 140, 66, 0.15) 0%, transparent 40%),
       radial-gradient(circle at 90% 80%, rgba(0, 168, 168, 0.15) 0%, transparent 40%);
@@ -39,7 +37,6 @@
     padding: 20px 10px;
   }
 
-  /* 필름 노이즈 텍스처 */
   body::before {
     content: "";
     position: fixed;
@@ -51,7 +48,6 @@
     filter: contrast(120%) brightness(100%);
   }
 
-  /* UI 요소들 앞으로 꺼내기 */
   h1, .subtitle, .top-panels, .room-selector, .player-wrap, .controls, .comment-panel, #helpModal {
     position: relative;
     z-index: 10;
@@ -101,7 +97,6 @@
   #youtubePlayer { width: 100%; height: 100%; pointer-events: auto; }
   #danmakuOverlay { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 10; }
   
-  /* 시네마틱 자막 */
   #subtitleDisplay {
     position: absolute;
     bottom: 30px; 
@@ -142,7 +137,7 @@
   
   button.ctrl-btn { 
     background: none; border: none; color: var(--text); cursor: pointer; 
-    padding: 5px; font-size: 1.5rem; /* 아이콘 크기 적당하게 */
+    padding: 5px; font-size: 1.5rem; 
     border: 1px solid var(--border); border-radius: 6px; min-width: 36px;
     display: flex; align-items: center; justify-content: center;
   }
@@ -221,11 +216,11 @@
 <body>
 
 <h1>서퍼 플레이어 <span class="help-icon" id="openHelp">ⓘ</span></h1>
-<p class="subtitle">태국 gl 같이 즐기자</p>
+<p class="subtitle">태젤드</p>
 
 <div class="top-panels">
   <div class="settings-box">
-    <h3>⚡ 댓글 단축키 (커스텀)</h3>
+    <h3> 댓글 단축키 (커스텀)</h3>
     <div class="macro-grid" style="grid-template-columns: 1fr; gap: 8px;">
       <div style="display:flex; gap:5px; align-items:center;">
         <span class="hotkey">1</span>
@@ -278,10 +273,10 @@
     <span style="font-size:0.72rem;color:var(--muted);margin-left:auto;">글자</span>
     <input type="range" id="fontSizeSlider" min="16" max="48" step="2" value="24" style="width:50px;">
     
-    <button class="ctrl-btn" id="fullscreenBtn" style="gap:5px; font-size:0.8rem;">
-      <i class="ph ph-bold ph-arrows-out-simple"></i> 전체화면
-    </button>
     <button class="toggle-btn on" id="danmakuToggle">댓글 ON</button>
+
+    <button class="ctrl-btn" id="fullscreenBtn" style="gap:5px; font-size:0.8rem; margin-left:8px;">
+      <i class="ph ph-bold ph-arrows-out-simple"></i> 전체화면</button>
   </div>
 </div>
 
@@ -370,18 +365,15 @@
     });
   };
 
-  // 🛠️ JS 아이콘 변경 로직 (수정됨)
   function onPlayerStateChange(event) {
     const btn = document.getElementById('playBtn');
     
     if (event.data === YT.PlayerState.PLAYING) {
       startDanmakuLoop();
-      // 일시정지 아이콘
       btn.innerHTML = '<i class="ph ph-fill ph-pause"></i>'; 
     } else {
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
-      // 재생 아이콘
-      btn.innerHTML = '<i class="ph-fill ph-play"></i>';
+      btn.innerHTML = '<i class="ph ph-fill ph-play"></i>';
     }
   }
 
@@ -635,7 +627,6 @@
     reader.readAsText(file, 'UTF-8'); e.target.value = '';
   });
 
-  // ⌨️ 키보드 단축키
   document.addEventListener('keydown', (e) => {
     const isFS = !!document.fullscreenElement;
     const fsWrapper = document.getElementById('fsInputWrapper');
